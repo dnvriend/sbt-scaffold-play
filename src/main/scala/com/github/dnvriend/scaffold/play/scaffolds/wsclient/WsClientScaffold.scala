@@ -17,10 +17,10 @@
 package com.github.dnvriend.scaffold.play.scaffolds.wsclient
 
 import ammonite.ops._
-import com.github.dnvriend.scaffold.play.parsers.Parsers
 import com.github.dnvriend.scaffold.play.repository.ScaffoldRepository
 import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext }
-import com.github.dnvriend.scaffold.play.util.{ FileUtils, UserInput }
+import com.github.dnvriend.scaffold.play.userinput.PackageClassUserInput
+import com.github.dnvriend.scaffold.play.util.FileUtils
 import com.google.inject.Inject
 import org.slf4j.{ Logger, LoggerFactory }
 
@@ -38,10 +38,9 @@ class WsClientScaffold @Inject() (repo: ScaffoldRepository) extends Scaffold {
     log.debug("Scaffolding a web service client: " + ctx)
 
     val maybeResult: Disjunction[String, Path] = for {
-      packageName <- UserInput.readLine[String](Parsers.packageParser(ctx.organization), "Enter package name > ")
-      className <- UserInput.readLine[String](Parsers.classNameParser(WsClientScaffold.DefaultClassName), "Enter className > ")
-      content <- generateContent(packageName, className)
-      createdClass <- create(ctx.srcDir, packageName, className, content)
+      input <- PackageClassUserInput.askUser(ctx.organization, WsClientScaffold.DefaultClassName)
+      content <- generateContent(input.packageName, input.className)
+      createdClass <- create(ctx.srcDir, input.packageName, input.className, content)
     } yield createdClass
 
     maybeResult match {

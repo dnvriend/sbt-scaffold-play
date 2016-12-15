@@ -16,6 +16,6 @@
 
 package com.github.dnvriend.scaffold.play.enabler
 
-import sbt.File
+import ammonite.ops._
 
-final case class EnablerContext(baseDir: File, srcDir: File, testDir: File, organization: String)
+final case class EnablerContext(baseDir: Path, srcDir: Path, testDir: Path, organization: String)

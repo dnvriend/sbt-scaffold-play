@@ -16,14 +16,22 @@
 
 package com.github.dnvriend.scaffold.play.parsers
 
+import sbt.complete.DefaultParsers._
 import sbt.complete.{ DefaultParsers, Parser }
 
 object Parsers {
-  def packageParser(defaults: String*): Parser[String] =
-    DefaultParsers.token(DefaultParsers.any.*.map(_.mkString), "You can use any character.")
-      .examples(defaults: _*)
+  def packageParser(defaults: String*): Parser[String] = {
+    val lowercaseChar = DefaultParsers.charClass(c => c.isLetter && c.isLower, "lower case character")
+    val lowercaseCharOrdot = DefaultParsers.charClass(c => (c.isLetter && c.isLower) || c == '.', "lowercase letter or dot")
+    (lowercaseChar.+ ~ lowercaseCharOrdot.+.? <~ EOF).map {
+      case (xs, ys) => (xs ++ ys.getOrElse(Seq.empty[Char])).mkString
+    }.examples(defaults: _*)
+  }
 
-  def classNameParser(defaults: String*): Parser[String] =
-    DefaultParsers.token(DefaultParsers.any.*.map(_.mkString), "You can use any character.")
-      .examples(defaults: _*)
+  def classNameParser(defaults: String*): Parser[String] = {
+    val upperCase = DefaultParsers.charClass(c => c.isLetter && c.isUpper, "upper case character")
+    (upperCase.+ ~ StringBasic <~ EOF).map {
+      case (xs, str) => xs.mkString + str
+    }
+  }.examples(defaults: _*)
 }

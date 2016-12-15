@@ -92,9 +92,9 @@ object SbtScaffoldPlay extends AutoPlugin {
 
     enablerContext := {
       val baseDir = baseDirectory.value
-      val srcDir = (sourceDirectory in Compile).value
-      val testDir = (sourceDirectory in Test).value
-      EnablerContext(baseDir, srcDir, testDir, organization.value)
+      val srcDir = (sourceDirectories in Compile).value.find(file => file.absolutePath.endsWith("scala") || file.absolutePath.endsWith("app")).getOrElse((sourceDirectory in Compile).value)
+      val testDir = (sourceDirectories in Test).value.find(file => file.absolutePath.endsWith("scala") || file.absolutePath.endsWith("app")).getOrElse((sourceDirectory in Test).value)
+      EnablerContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(testDir), organization.value)
     },
 
     enable := {
@@ -109,8 +109,8 @@ object SbtScaffoldPlay extends AutoPlugin {
 
     scaffoldContext := {
       val baseDir = baseDirectory.value
-      val srcDir = (sourceDirectory in Compile).value
-      val testDir = (sourceDirectory in Test).value
+      val srcDir = (sourceDirectories in Compile).value.find(file => file.absolutePath.endsWith("scala") || file.absolutePath.endsWith("app")).getOrElse((sourceDirectory in Compile).value)
+      val testDir = (sourceDirectories in Test).value.find(file => file.absolutePath.endsWith("scala") || file.absolutePath.endsWith("app")).getOrElse((sourceDirectory in Test).value)
       ScaffoldContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(testDir), organization.value)
     },
 
