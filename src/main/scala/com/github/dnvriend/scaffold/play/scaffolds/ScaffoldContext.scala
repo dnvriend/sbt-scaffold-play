@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play.util
+package com.github.dnvriend.scaffold.play.scaffolds
 
-import play.api.Application
-import scala.reflect.ClassTag
+import ammonite.ops.Path
 
-object GuiceUtil {
-  def get[A: ClassTag](implicit application: Application) = {
-    application.injector.instanceOf[A]
-  }
-}
+final case class ScaffoldContext(baseDir: Path, srcDir: Path, testDir: Path, organization: String)

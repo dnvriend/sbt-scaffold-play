@@ -14,19 +14,8 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play.enabler
+package com.github.dnvriend.scaffold.play.scaffolds
 
-import sbt._
-import sbt.complete.DefaultParsers._
-import sbt.complete._
-
-sealed trait EnablerChoice
-case object BuildInfoEnablerChoice extends EnablerChoice
-
-object EnablerChoice {
-  val parser: Parser[EnablerChoice] = token(Space ~> ("buildinfo" ^^^ BuildInfoEnablerChoice))
-}
-
-trait Enabler {
-  def execute(baseDirectory: File)
+trait Scaffold {
+  def execute(ctx: ScaffoldContext): Unit
 }

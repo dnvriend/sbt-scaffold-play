@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play.scaffolds.client
+package com.github.dnvriend.scaffold.play.enabler
 
-import com.github.dnvriend.scaffold.play.repository.ScaffoldRepository
-import com.github.dnvriend.scaffold.play.scaffolds.Scaffold
-import com.google.inject.Inject
-import org.slf4j.LoggerFactory
-import sbt.File
+import sbt._
+import sbt.complete.DefaultParsers._
+import sbt.complete._
 
-class ClientScaffold @Inject() (repo: ScaffoldRepository) extends Scaffold {
-  val log = LoggerFactory.getLogger(this.getClass)
+sealed trait EnablerChoice
+case object BuildInfoEnablerChoice extends EnablerChoice
 
-  override def execute(baseDirectory: File): Unit = {
-    log.debug("Scaffolding a web service client")
-  }
+object EnablerChoice {
+  val parser: Parser[EnablerChoice] = token(Space ~> ("buildinfo" ^^^ BuildInfoEnablerChoice))
 }

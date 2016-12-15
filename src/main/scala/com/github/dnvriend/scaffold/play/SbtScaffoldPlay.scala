@@ -17,10 +17,11 @@
 package com.github.dnvriend.scaffold.play
 
 import com.github.dnvriend.scaffold.play.enabler.buildinfo.BuildInfoEnabler
-import com.github.dnvriend.scaffold.play.enabler.{ BuildInfoEnablerChoice, EnablerChoice }
-import com.github.dnvriend.scaffold.play.scaffolds.client.ClientScaffold
+import com.github.dnvriend.scaffold.play.enabler.{ BuildInfoEnablerChoice, EnablerChoice, EnablerContext }
+import com.github.dnvriend.scaffold.play.scaffolds.wsclient.WsClientScaffold
 import com.github.dnvriend.scaffold.play.scaffolds.pingcontroller.PingControllerScaffold
-import com.github.dnvriend.scaffold.play.scaffolds.{ ClientChoice, PingControllerChoice, ScaffoldChoice }
+import com.github.dnvriend.scaffold.play.scaffolds._
+import com.github.dnvriend.scaffold.play.scaffolds.controller.ControllerScaffold
 import com.github.dnvriend.scaffold.play.util.GuiceUtil
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.{ Application, Environment }
@@ -41,6 +42,8 @@ object SbtScaffoldPlay extends AutoPlugin {
     val scaffoldApplication: SettingKey[Application] = settingKey[Application]("The scaffold play application")
     val enable: InputKey[Unit] = inputKey[Unit]("enables features in play")
     val scaffold: InputKey[Unit] = inputKey[Unit]("scaffold features in play")
+    val scaffoldContext: TaskKey[ScaffoldContext] = taskKey[ScaffoldContext]("Creates the scaffold context")
+    val enablerContext: TaskKey[EnablerContext] = taskKey[EnablerContext]("Creates the enabler context")
   }
 
   import autoImport._
@@ -87,21 +90,41 @@ object SbtScaffoldPlay extends AutoPlugin {
 
     scaffoldBuildInfo := BuildInfo.toString,
 
+    enablerContext := {
+      val baseDir = baseDirectory.value
+      val srcDir = (sourceDirectory in Compile).value
+      val testDir = (sourceDirectory in Test).value
+      EnablerContext(baseDir, srcDir, testDir, organization.value)
+    },
+
     enable := {
+      val ctx = enablerContext.value
+      implicit val app = scaffoldApplication.value
       val choice = EnablerChoice.parser.parsed
       choice match {
         case BuildInfoEnablerChoice =>
-          GuiceUtil.getComponent[BuildInfoEnabler](scaffoldApplication.value).execute(baseDirectory.value)
+          GuiceUtil.get[BuildInfoEnabler].execute(ctx)
       }
     },
 
+    scaffoldContext := {
+      val baseDir = baseDirectory.value
+      val srcDir = (sourceDirectory in Compile).value
+      val testDir = (sourceDirectory in Test).value
+      ScaffoldContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(testDir), organization.value)
+    },
+
     scaffold := {
+      val ctx = scaffoldContext.value
+      implicit val app = scaffoldApplication.value
       val choice = ScaffoldChoice.parser.parsed
       choice match {
+        case ControllerChoice =>
+          GuiceUtil.get[ControllerScaffold].execute(ctx)
         case PingControllerChoice =>
-          GuiceUtil.getComponent[PingControllerScaffold](scaffoldApplication.value).execute(baseDirectory.value)
-        case ClientChoice =>
-          GuiceUtil.getComponent[ClientScaffold](scaffoldApplication.value).execute(baseDirectory.value)
+          GuiceUtil.get[PingControllerScaffold].execute(ctx)
+        case WsClientChoice =>
+          GuiceUtil.get[WsClientScaffold].execute(ctx)
       }
     }
   )

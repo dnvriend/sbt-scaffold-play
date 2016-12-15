@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play.enabler.buildinfo
+package com.github.dnvriend.scaffold.play.scaffolds.controller
 
-import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext }
 import com.github.dnvriend.scaffold.play.repository.ScaffoldRepository
+import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext }
 import com.google.inject.Inject
-import org.slf4j.LoggerFactory
+import org.slf4j.{ Logger, LoggerFactory }
 
-class BuildInfoEnabler @Inject() (repo: ScaffoldRepository) extends Enabler {
-  val log = LoggerFactory.getLogger(this.getClass)
+object ControllerScaffold {
+  final val ID: String = classOf[ControllerScaffold].getName
+  final case class UserInput(packageName: String, className: String)
+}
 
-  override def execute(ctx: EnablerContext): Unit = {
-    log.info("Enable buildinfo")
+class ControllerScaffold @Inject() (repo: ScaffoldRepository) extends Scaffold {
+  val log: Logger = LoggerFactory.getLogger(this.getClass)
+
+  override def execute(ctx: ScaffoldContext): Unit = {
+    log.debug("Scaffolding a simple controller")
   }
 }

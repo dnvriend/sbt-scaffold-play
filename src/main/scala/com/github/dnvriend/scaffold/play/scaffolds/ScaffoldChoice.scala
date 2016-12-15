@@ -21,14 +21,15 @@ import sbt.complete.DefaultParsers._
 import sbt.complete._
 
 sealed trait ScaffoldChoice
+case object ControllerChoice extends ScaffoldChoice
 case object PingControllerChoice extends ScaffoldChoice
-case object ClientChoice extends ScaffoldChoice
+case object WsClientChoice extends ScaffoldChoice
 
 object ScaffoldChoice {
-  val parser: Parser[ScaffoldChoice] = token(Space ~> ("pingcontroller" ^^^ PingControllerChoice |
-    "client" ^^^ ClientChoice))
-}
+  val controller = "controller" ^^^ ControllerChoice
+  val pingcontroller = "pingcontroller" ^^^ PingControllerChoice
+  val wsclient = "wsclient" ^^^ WsClientChoice
 
-trait Scaffold {
-  def execute(baseDirectory: File): Unit
+  val parser: Parser[ScaffoldChoice] =
+    DefaultParsers.token(Space ~> (controller | pingcontroller | wsclient))
 }

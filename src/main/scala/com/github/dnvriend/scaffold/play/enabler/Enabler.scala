@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play.util
+package com.github.dnvriend.scaffold.play.enabler
 
-import play.api.Application
-import scala.reflect.ClassTag
-
-object GuiceUtil {
-  def get[A: ClassTag](implicit application: Application) = {
-    application.injector.instanceOf[A]
-  }
+trait Enabler {
+  def execute(ctx: EnablerContext): Unit
 }
