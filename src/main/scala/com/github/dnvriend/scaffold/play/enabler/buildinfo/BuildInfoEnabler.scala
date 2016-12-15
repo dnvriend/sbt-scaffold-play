@@ -17,12 +17,9 @@
 package com.github.dnvriend.scaffold.play.enabler.buildinfo
 
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext }
-import com.github.dnvriend.scaffold.play.repository.ScaffoldRepository
-import com.google.inject.Inject
-import org.slf4j.LoggerFactory
+import sbt.Logger
 
-class BuildInfoEnabler @Inject() (repo: ScaffoldRepository) extends Enabler {
-  val log = LoggerFactory.getLogger(this.getClass)
+class BuildInfoEnabler(implicit log: Logger) extends Enabler {
 
   override def execute(ctx: EnablerContext): Unit = {
     log.info("Enable buildinfo")

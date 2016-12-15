@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play
+package com.github.dnvriend.scaffold.play.scaffolds.controller
 
-import com.github.dnvriend.scaffold.play.repository.ScaffoldRepository
-import com.google.inject.AbstractModule
+import org.scalatest.{ FlatSpec, Matchers }
 
-class ScaffoldModule extends AbstractModule {
-  override def configure(): Unit = {
-    bind(classOf[ScaffoldRepository])
-      .asEagerSingleton()
+class TemplateTest extends FlatSpec with Matchers {
+  it should "render a controller" in {
+    println(Template.render("com.github.dnvriend", "MyController"))
   }
 }

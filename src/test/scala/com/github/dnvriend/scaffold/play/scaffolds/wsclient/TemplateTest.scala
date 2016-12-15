@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play.util
+package com.github.dnvriend.scaffold.play.scaffolds.wsclient
 
-import play.api.Application
-import scala.reflect.ClassTag
+import org.scalatest.{ FlatSpec, Matchers }
 
-object GuiceUtil {
-  def get[A: ClassTag](implicit application: Application) = {
-    application.injector.instanceOf[A]
+class TemplateTest extends FlatSpec with Matchers {
+  it should "render a wsclient" in {
+    println(Template.render("com.github.dnvriend", "MyController"))
   }
 }

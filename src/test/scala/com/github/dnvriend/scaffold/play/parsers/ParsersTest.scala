@@ -22,11 +22,11 @@ import org.typelevel.scalatest.ValidationMatchers
 
 class ParsersTest extends FlatSpec with Matchers with ValidationMatchers {
   it should "classNameParser" in {
-    Parsers.classNameParser("").parse("") should haveFailure("Expected upper case character")
-    Parsers.classNameParser("").parse(" ") should haveFailure("Expected upper case character")
-    Parsers.classNameParser("").parse("MyClass ") should haveFailure("Expected non-whitespace character ...Excluded. ...MyClass")
-    Parsers.classNameParser("").parse("1yClass") should haveFailure("Expected upper case character ...1yClass")
-    Parsers.classNameParser("").parse("myClass") should haveFailure("Expected upper case character ...myClass")
+    Parsers.classNameParser("").parse("") shouldBe failure
+    Parsers.classNameParser("").parse(" ") shouldBe failure
+    Parsers.classNameParser("").parse("MyClass ") shouldBe failure
+    Parsers.classNameParser("").parse("1yClass") shouldBe failure
+    Parsers.classNameParser("").parse("myClass") shouldBe failure
     Parsers.classNameParser("").parse("MyClass") should beSuccess("MyClass")
     Parsers.classNameParser("").parse("MYClass") should beSuccess("MYClass")
     Parsers.classNameParser("").parse("M1Class") should beSuccess("M1Class")
@@ -36,14 +36,18 @@ class ParsersTest extends FlatSpec with Matchers with ValidationMatchers {
     Parsers.packageParser("").parse("") should haveFailure("Expected lower case character")
     Parsers.packageParser("").parse(" ") should haveFailure("Expected lower case character")
     Parsers.packageParser("").parse(".") should haveFailure("Expected lower case character ....")
-    Parsers.packageParser("").parse("aa.bb.cc ") should haveFailure("Expected lowercase letter or dot ...Excluded. ...aa.bb.cc")
+    Parsers.packageParser("").parse("..") should haveFailure("Expected lower case character .....")
+    Parsers.packageParser("").parse(".a.") should haveFailure("Expected lower case character ....a.")
+    Parsers.packageParser("").parse("a..") should haveFailure("Expected lower case character ...a..")
+    Parsers.packageParser("").parse("a..b") should haveFailure("Expected lower case character ...a..b")
+    Parsers.packageParser("").parse("a..b..c") should haveFailure("Expected lower case character ...a..b..c")
+    Parsers.packageParser("").parse("aa.bb.cc ") should haveFailure("Expected lower case character ...Expected dot ...Excluded. ...aa.bb.cc")
     Parsers.packageParser("").parse("AA.BB.CC") should haveFailure("Expected lower case character ...AA.BB.CC")
-    Parsers.packageParser("").parse("aa.BB.cc") should haveFailure("Expected lowercase letter or dot ...Excluded. ...aa.BB.cc")
-    Parsers.packageParser("").parse("aa.bb.CC") should haveFailure("Expected lowercase letter or dot ...Excluded. ...aa.bb.CC")
+    Parsers.packageParser("").parse("aa.BB.cc") should haveFailure("Expected lower case character ...aa.BB.cc")
+    Parsers.packageParser("").parse("aa.bb.CC") should haveFailure("Expected lower case character ...aa.bb.CC")
     Parsers.packageParser("").parse("a") should beSuccess("a")
     Parsers.packageParser("").parse("a.b") should beSuccess("a.b")
     Parsers.packageParser("").parse("aa.bb") should beSuccess("aa.bb")
     Parsers.packageParser("").parse("aa.bb.cc") should beSuccess("aa.bb.cc")
-
   }
 }

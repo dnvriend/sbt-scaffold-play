@@ -18,13 +18,13 @@ package com.github.dnvriend.scaffold.play
 
 import com.github.dnvriend.scaffold.play.enabler.buildinfo.BuildInfoEnabler
 import com.github.dnvriend.scaffold.play.enabler.{ BuildInfoEnablerChoice, EnablerChoice, EnablerContext }
+import com.github.dnvriend.scaffold.play.parsers.Parsers
+import com.github.dnvriend.scaffold.play.parsers.Parsers._
 import com.github.dnvriend.scaffold.play.scaffolds.wsclient.WsClientScaffold
 import com.github.dnvriend.scaffold.play.scaffolds.pingcontroller.PingControllerScaffold
 import com.github.dnvriend.scaffold.play.scaffolds._
 import com.github.dnvriend.scaffold.play.scaffolds.controller.ControllerScaffold
-import com.github.dnvriend.scaffold.play.util.GuiceUtil
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.{ Application, Environment }
+import com.github.dnvriend.scaffold.play.scaffolds.dto.DtoScaffold
 import sbt.Keys._
 import sbt._
 
@@ -36,10 +36,9 @@ object SbtScaffoldPlay extends AutoPlugin {
   object autoImport {
     val scaffoldBuildInfo: SettingKey[String] = settingKey[String]("The scaffold build info")
     val scaffoldDirectory: SettingKey[File] = settingKey[File]("The scaffold directory containing the play application settings and h2 database")
+    val scaffoldSourceDirectory = settingKey[File]("The compile source directory that scaffold will use to generate files")
+    val scaffoldTestDirectory = settingKey[File]("The test source directory that scaffold will use to generate files")
     val scaffoldDb: SettingKey[File] = settingKey[File]("The scaffold database location")
-    val scaffoldActorSystemName: SettingKey[String] = settingKey[String]("The scaffold actor system name")
-    val scaffoldConfigurationFile: SettingKey[File] = settingKey[File]("The scaffold configuration file")
-    val scaffoldApplication: SettingKey[Application] = settingKey[Application]("The scaffold play application")
     val enable: InputKey[Unit] = inputKey[Unit]("enables features in play")
     val scaffold: InputKey[Unit] = inputKey[Unit]("scaffold features in play")
     val scaffoldContext: TaskKey[ScaffoldContext] = taskKey[ScaffoldContext]("Creates the scaffold context")
@@ -57,74 +56,49 @@ object SbtScaffoldPlay extends AutoPlugin {
 
     scaffoldDb := scaffoldDirectory.value / "scaffold.h2",
 
-    scaffoldActorSystemName := "scaffold-system",
+    scaffoldSourceDirectory := (sourceDirectories in Compile).value.find(file => file.absolutePath.endsWith("scala") || file.absolutePath.endsWith("app")).getOrElse((sourceDirectory in Compile).value),
 
-    scaffoldConfigurationFile := {
-      val scaffoldCfg: File = scaffoldDirectory.value / "application.conf"
-      val jdbcUrl = "jdbc:h2:" + scaffoldDb.value.absolutePath
-      val actorSystemName = scaffoldActorSystemName.value
-      if (!scaffoldCfg.exists()) {
-        IO.write(
-          scaffoldCfg,
-          s"""
-          |play.akka.actor-system = "$actorSystemName"
-          |db.default.driver=org.h2.Driver
-          |db.default.url="$jdbcUrl"
-          |play.modules.enabled += "play.api.db.DBModule"
-          |play.modules.enabled += "play.api.db.HikariCPModule"
-          |play.modules.enabled += "com.github.dnvriend.scaffold.play.ScaffoldModule"
-          |
-        """.stripMargin
-        )
-      }
-      scaffoldCfg
-    },
-
-    scaffoldApplication := {
-      val environment = Environment.simple(scaffoldDirectory.value)
-      new GuiceApplicationBuilder(
-        environment = environment,
-        configuration = play.api.Configuration.load(environment, Map("config.file" -> scaffoldConfigurationFile.value.absolutePath))
-      ).build()
-    },
+    scaffoldTestDirectory := (sourceDirectories in Test).value.find(file => file.absolutePath.endsWith("scala") || file.absolutePath.endsWith("app")).getOrElse((sourceDirectory in Test).value),
 
     scaffoldBuildInfo := BuildInfo.toString,
 
     enablerContext := {
       val baseDir = baseDirectory.value
-      val srcDir = (sourceDirectories in Compile).value.find(file => file.absolutePath.endsWith("scala") || file.absolutePath.endsWith("app")).getOrElse((sourceDirectory in Compile).value)
-      val testDir = (sourceDirectories in Test).value.find(file => file.absolutePath.endsWith("scala") || file.absolutePath.endsWith("app")).getOrElse((sourceDirectory in Test).value)
+      val srcDir = scaffoldSourceDirectory.value
+      val testDir = scaffoldTestDirectory.value
       EnablerContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(testDir), organization.value)
     },
 
     enable := {
       val ctx = enablerContext.value
-      implicit val app = scaffoldApplication.value
+      implicit val log: Logger = streams.value.log
       val choice = EnablerChoice.parser.parsed
       choice match {
         case BuildInfoEnablerChoice =>
-          GuiceUtil.get[BuildInfoEnabler].execute(ctx)
+          new BuildInfoEnabler().execute(ctx)
       }
     },
 
     scaffoldContext := {
       val baseDir = baseDirectory.value
-      val srcDir = (sourceDirectories in Compile).value.find(file => file.absolutePath.endsWith("scala") || file.absolutePath.endsWith("app")).getOrElse((sourceDirectory in Compile).value)
-      val testDir = (sourceDirectories in Test).value.find(file => file.absolutePath.endsWith("scala") || file.absolutePath.endsWith("app")).getOrElse((sourceDirectory in Test).value)
+      val srcDir = scaffoldSourceDirectory.value
+      val testDir = scaffoldTestDirectory.value
       ScaffoldContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(testDir), organization.value)
     },
 
     scaffold := {
       val ctx = scaffoldContext.value
-      implicit val app = scaffoldApplication.value
-      val choice = ScaffoldChoice.parser.parsed
+      implicit val log: Logger = streams.value.log
+      val choice: ScaffoldChoice = Parsers.scaffoldParser.parsed
       choice match {
         case ControllerChoice =>
-          GuiceUtil.get[ControllerScaffold].execute(ctx)
+          new ControllerScaffold().execute(ctx)
         case PingControllerChoice =>
-          GuiceUtil.get[PingControllerScaffold].execute(ctx)
+          new PingControllerScaffold().execute(ctx)
         case WsClientChoice =>
-          GuiceUtil.get[WsClientScaffold].execute(ctx)
+          new WsClientScaffold().execute(ctx)
+        case DtoChoice =>
+          new DtoScaffold().execute(ctx)
       }
     }
   )

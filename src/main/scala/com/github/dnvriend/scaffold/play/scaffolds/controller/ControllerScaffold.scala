@@ -16,20 +16,31 @@
 
 package com.github.dnvriend.scaffold.play.scaffolds.controller
 
-import com.github.dnvriend.scaffold.play.repository.ScaffoldRepository
 import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext }
-import com.google.inject.Inject
-import org.slf4j.{ Logger, LoggerFactory }
+import sbt.Logger
 
 object ControllerScaffold {
   final val ID: String = classOf[ControllerScaffold].getName
   final case class UserInput(packageName: String, className: String)
 }
 
-class ControllerScaffold @Inject() (repo: ScaffoldRepository) extends Scaffold {
-  val log: Logger = LoggerFactory.getLogger(this.getClass)
+object Template {
+  def render(packageName: String, className: String): String =
+    s"""package $packageName
+    |
+    |import javax.inject.Inject
+    |import play.api.mvc.{ Action, Controller }
+    |import org.slf4j.{ Logger, LoggerFactory }
+    |
+    |class $className @Inject() () extends Controller {
+    |   val log: Logger = LoggerFactory.getLogger(this.getClass)
+    |   def action = Action(Ok)
+    |}
+  """.stripMargin
+}
 
+class ControllerScaffold(implicit log: Logger) extends Scaffold {
   override def execute(ctx: ScaffoldContext): Unit = {
-    log.debug("Scaffolding a simple controller")
+    log.info("Scaffolding a simple controller")
   }
 }

@@ -16,16 +16,12 @@
 
 package com.github.dnvriend.scaffold.play.scaffolds.pingcontroller
 
-import com.github.dnvriend.scaffold.play.repository.ScaffoldRepository
 import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext }
-import com.google.inject.Inject
-import org.slf4j.LoggerFactory
-import sbt.File
+import sbt.Logger
 
-class PingControllerScaffold @Inject() (repo: ScaffoldRepository) extends Scaffold {
-  val log = LoggerFactory.getLogger(this.getClass)
+class PingControllerScaffold(implicit log: Logger) extends Scaffold {
 
   override def execute(ctx: ScaffoldContext): Unit = {
-    log.debug("scaffolding a ping controller")
+    log.info("scaffolding a ping controller")
   }
 }

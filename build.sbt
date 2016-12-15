@@ -9,10 +9,6 @@ scalaVersion := "2.10.6"
 sbtPlugin := true
 
 libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.7"
-libraryDependencies += "com.typesafe.play" %% "twirl-api" % "1.1.1"
-libraryDependencies += "com.typesafe.play" %% "anorm" % "2.5.0"
-libraryDependencies += "com.typesafe.play" %% "play-jdbc" % "2.4.8"
-libraryDependencies += "com.typesafe.play" %% "play-jdbc-api" % "2.4.8"
 libraryDependencies += "com.h2database" % "h2" % "1.4.193"
 libraryDependencies += "com.lihaoyi" %% "ammonite-ops" % "0.8.1"
 
@@ -51,7 +47,7 @@ bintrayRepository := "sbt-plugins"
 
 bintrayReleaseOnPublish := true
 
-enablePlugins(AutomateHeaderPlugin, SbtScalariform, BintrayPlugin, BuildInfoPlugin, SbtTwirl)
+enablePlugins(AutomateHeaderPlugin, SbtScalariform, BintrayPlugin, BuildInfoPlugin)
 
 buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
 

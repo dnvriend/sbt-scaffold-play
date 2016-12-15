@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package scaffold.wsclient
+package com.github.dnvriend.scaffold.play.scaffolds.dto
 
-import org.scalatest.{ FlatSpec, Matchers }
-
-class WsClientTest extends FlatSpec with Matchers {
-  it should "render" in {
-    println(scaffold.wsclient.txt.wsclient.render("com.github.dnvriend", "MyWsClient").toString)
-  }
+object Template {
+  def render(packageName: String, className: String): String =
+    s"""package $packageName
+      |
+      |package com.github.dnvriend.model
+      |
+      |import play.api.libs.json.Json
+      |
+      |object $className {
+      |  implicit val format = Json.format[$className]
+      |}
+      |final case class $className(id: Long)
+    """.stripMargin
 }

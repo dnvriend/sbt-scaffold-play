@@ -19,10 +19,12 @@ package com.github.dnvriend.scaffold.play.userinput
 import com.github.dnvriend.scaffold.play.parsers.Parsers
 import com.github.dnvriend.scaffold.play.util.UserInput
 
+import scalaz.Disjunction
+
 final case class PackageClassUserInput(packageName: String, className: String)
 
 object PackageClassUserInput {
-  def askUser(defaultPackageName: String, defaultClassName: String) = for {
+  def askUser(defaultPackageName: String, defaultClassName: String): Disjunction[String, PackageClassUserInput] = for {
     packageName <- UserInput.readLine[String](Parsers.packageParser(defaultPackageName), "Enter package name > ")
     className <- UserInput.readLine[String](Parsers.classNameParser(defaultClassName), "Enter className > ")
   } yield PackageClassUserInput(packageName, className)

@@ -16,11 +16,8 @@
 
 package com.github.dnvriend.scaffold.play.repository
 
-import javax.inject.Inject
+import sbt.Logger
 
-import org.slf4j.LoggerFactory
-import play.api.db.Database
+class ScaffoldRepository(implicit log: Logger) {
 
-class ScaffoldRepository @Inject() (db: Database) {
-  val log = LoggerFactory.getLogger(this.getClass)
 }
