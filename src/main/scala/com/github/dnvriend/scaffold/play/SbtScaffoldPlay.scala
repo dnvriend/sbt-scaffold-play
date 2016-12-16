@@ -109,8 +109,8 @@ object SbtScaffoldPlay extends AutoPlugin {
       }
 
       scaffoldResult match {
-        case DRight(scaffoldResult) =>
-          log.info(s"Successfully created: ${scaffoldResult.getClass.getSimpleName}")
+        case DRight(_) =>
+          log.info("Scaffold completed")
         case DLeft(message) =>
           log.warn(s"Oops: could not scaffold due to: $message")
       }

@@ -16,8 +16,4 @@
 
 package com.github.dnvriend.scaffold.play.enabler
 
-import scalaz.Disjunction
-
-trait Enabler {
-  def execute(ctx: EnablerContext): Disjunction[String, EnablerResult]
-}
+trait EnablerResult

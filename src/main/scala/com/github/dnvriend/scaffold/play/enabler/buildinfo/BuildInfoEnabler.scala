@@ -16,12 +16,46 @@
 
 package com.github.dnvriend.scaffold.play.enabler.buildinfo
 
-import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext }
-import sbt.Logger
+import ammonite.ops._
+import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
+import com.github.dnvriend.scaffold.play.util.FileUtils
 
-class BuildInfoEnabler(implicit log: Logger) extends Enabler {
+import scalaz.Disjunction
 
-  override def execute(ctx: EnablerContext): Unit = {
-    log.info("Enable buildinfo")
+final case class BuildInfoEnablerResult(settings: Path, plugin: Path) extends EnablerResult
+
+class BuildInfoEnabler extends Enabler {
+  override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
+    settings <- createBuildInfoSettings(ctx.baseDir, Template.settings())
+    plugin <- createBuildInfoPlugin(ctx.baseDir, Template.plugin())
+  } yield BuildInfoEnablerResult(settings, plugin)
+
+  def createBuildInfoSettings(baseDir: Path, content: String): Disjunction[String, Path] =
+    FileUtils.writeFile(baseDir / "buildinfo-settings.sbt", content)
+
+  def createBuildInfoPlugin(baseDir: Path, content: String): Disjunction[String, Path] = {
+    FileUtils.writeFile(baseDir / "project" / "buildinfo-plugin.sbt", content)
   }
+}
+
+object Template {
+  def settings(): String =
+    """
+      |enablePlugins(BuildInfoPlugin)
+      |
+      |buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
+      |
+      |buildInfoOptions += BuildInfoOption.ToMap
+      |
+      |buildInfoOptions += BuildInfoOption.ToJson
+      |
+      |buildInfoOptions += BuildInfoOption.BuildTime
+      |
+      |buildInfoPackage := organization.value
+    """.stripMargin
+
+  def plugin(): String =
+    """
+    |addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.6.1")
+  """.stripMargin
 }
