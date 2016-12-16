@@ -16,6 +16,7 @@
 
 package com.github.dnvriend.scaffold.play.enabler.all
 
+import com.github.dnvriend.scaffold.play.enabler.akka.AkkaEnabler
 import com.github.dnvriend.scaffold.play.enabler.anorm.AnormEnabler
 import com.github.dnvriend.scaffold.play.enabler.buildinfo.BuildInfoEnabler
 import com.github.dnvriend.scaffold.play.enabler.fp.FpEnabler
@@ -23,11 +24,11 @@ import com.github.dnvriend.scaffold.play.enabler.json.JsonEnabler
 import com.github.dnvriend.scaffold.play.enabler.logging.LoggingEnabler
 import com.github.dnvriend.scaffold.play.enabler.sbtheader.SbtHeaderEnabler
 import com.github.dnvriend.scaffold.play.enabler.scalariform.ScalariformEnabler
-import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
+import com.github.dnvriend.scaffold.play.enabler.{Enabler, EnablerContext, EnablerResult}
 
 import scalaz.Disjunction
 
-final case class EveryFeatureEnablerResult(scalariform: EnablerResult, sbtHeader: EnablerResult, buildInfo: EnablerResult, fp: EnablerResult, json: EnablerResult, logging: EnablerResult, anorm: EnablerResult) extends EnablerResult
+final case class EveryFeatureEnablerResult(scalariform: EnablerResult, sbtHeader: EnablerResult, buildInfo: EnablerResult, fp: EnablerResult, json: EnablerResult, logging: EnablerResult, anorm: EnablerResult, akka: EnablerResult) extends EnablerResult
 
 class EveryFeatureEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
@@ -38,5 +39,6 @@ class EveryFeatureEnabler extends Enabler {
     json <- new JsonEnabler().execute(ctx)
     logging <- new LoggingEnabler().execute(ctx)
     anorm <- new AnormEnabler().execute(ctx)
-  } yield EveryFeatureEnablerResult(scalariform, sbtHeader, buildInfo, fp, json, logging, anorm)
+    akka <- new AkkaEnabler().execute(ctx)
+  } yield EveryFeatureEnablerResult(scalariform, sbtHeader, buildInfo, fp, json, logging, anorm, akka)
 }

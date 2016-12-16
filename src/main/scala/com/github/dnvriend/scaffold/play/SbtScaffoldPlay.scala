@@ -17,6 +17,7 @@
 package com.github.dnvriend.scaffold.play
 
 import com.github.dnvriend.scaffold.play.enabler.EnablerContext
+import com.github.dnvriend.scaffold.play.enabler.akka.AkkaEnabler
 import com.github.dnvriend.scaffold.play.enabler.all.EveryFeatureEnabler
 import com.github.dnvriend.scaffold.play.enabler.anorm.AnormEnabler
 import com.github.dnvriend.scaffold.play.enabler.buildinfo.BuildInfoEnabler
@@ -94,6 +95,8 @@ object SbtScaffoldPlay extends AutoPlugin {
           new EveryFeatureEnabler().execute(ctx)
         case AnormEnablerChoice =>
           new AnormEnabler().execute(ctx)
+        case AkkaEnablerChoice =>
+          new AkkaEnabler().execute(ctx)
         case BuildInfoEnablerChoice =>
           new BuildInfoEnabler().execute(ctx)
         case ConductrEnablerChoice =>
