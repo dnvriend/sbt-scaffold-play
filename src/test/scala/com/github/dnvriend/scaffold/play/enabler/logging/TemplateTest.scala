@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play.scaffolds
+package com.github.dnvriend.scaffold.play.enabler.logging
 
-import ammonite.ops.Path
+import org.scalatest.{ FlatSpec, Matchers }
 
-final case class ScaffoldContext(baseDir: Path, srcDir: Path, resourceDir: Path, testDir: Path, organization: String, projectName: String)
+class TemplateTest extends FlatSpec with Matchers {
+  it should "" in {
+    println(Template.logback("com.github.dnvriend"))
+  }
+}

@@ -53,16 +53,24 @@ object Parsers {
   sealed trait EnablerChoice extends Choice
   case object AnormEnablerChoice extends EnablerChoice
   case object BuildInfoEnablerChoice extends EnablerChoice
+  case object ConductrEnablerChoice extends EnablerChoice
   case object ScalariformEnablerChoice extends EnablerChoice
+  case object LoggerEnablerChoice extends EnablerChoice
+  case object JsonEnablerChoice extends EnablerChoice
+  case object FpEnablerChoice extends EnablerChoice
   case object SbtHeaderEnablerChoice extends EnablerChoice
 
   val enablerParser: Parser[EnablerChoice] = {
     val anorm: Parser[EnablerChoice] = "anorm" ^^^ AnormEnablerChoice
     val buildinfo: Parser[EnablerChoice] = "buildinfo" ^^^ BuildInfoEnablerChoice
+    val conductr: Parser[EnablerChoice] = "conductr" ^^^ ConductrEnablerChoice
     val scalariform: Parser[EnablerChoice] = "scalariform" ^^^ ScalariformEnablerChoice
+    val logback: Parser[EnablerChoice] = ("logback" | "logger" | "log") ^^^ LoggerEnablerChoice
+    val json: Parser[EnablerChoice] = ("json" | "play-json") ^^^ JsonEnablerChoice
+    val fp: Parser[EnablerChoice] = ("fp" | "scalaz") ^^^ FpEnablerChoice
     val sbtHeader: Parser[EnablerChoice] = ("header" | "sbt-header" | "sbtHeader") ^^^ SbtHeaderEnablerChoice
 
-    DefaultParsers.token(Space ~> (anorm | buildinfo | scalariform | sbtHeader))
+    DefaultParsers.token(Space ~> (anorm | buildinfo | conductr | scalariform | sbtHeader | logback | json | fp))
   }
 
   val scaffoldParser: Parser[ScaffoldChoice] = {

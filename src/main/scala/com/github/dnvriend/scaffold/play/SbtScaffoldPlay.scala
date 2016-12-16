@@ -19,6 +19,10 @@ package com.github.dnvriend.scaffold.play
 import com.github.dnvriend.scaffold.play.enabler.EnablerContext
 import com.github.dnvriend.scaffold.play.enabler.anorm.AnormEnabler
 import com.github.dnvriend.scaffold.play.enabler.buildinfo.BuildInfoEnabler
+import com.github.dnvriend.scaffold.play.enabler.conductr.ConductrEnabler
+import com.github.dnvriend.scaffold.play.enabler.fp.FpEnabler
+import com.github.dnvriend.scaffold.play.enabler.json.JsonEnabler
+import com.github.dnvriend.scaffold.play.enabler.logging.LoggingEnabler
 import com.github.dnvriend.scaffold.play.enabler.sbtheader.SbtHeaderEnabler
 import com.github.dnvriend.scaffold.play.enabler.scalariform.ScalariformEnabler
 import com.github.dnvriend.scaffold.play.parsers.Parsers
@@ -71,11 +75,13 @@ object SbtScaffoldPlay extends AutoPlugin {
     scaffoldBuildInfo := BuildInfo.toString,
 
     enablerContext := {
-      val baseDir = baseDirectory.value
-      val srcDir = scaffoldSourceDirectory.value
-      val resourceDir = scaffoldResourceDirectory.value
-      val testDir = scaffoldTestDirectory.value
-      EnablerContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(resourceDir), ammonite.ops.Path(testDir), organization.value)
+      val baseDir: File = baseDirectory.value
+      val srcDir: File = scaffoldSourceDirectory.value
+      val resourceDir: File = scaffoldResourceDirectory.value
+      val testDir: File = scaffoldTestDirectory.value
+      val organizationName: String = organization.value
+      val projectName: String = name.value
+      EnablerContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(resourceDir), ammonite.ops.Path(testDir), organizationName, projectName)
     },
 
     enable := {
@@ -87,6 +93,14 @@ object SbtScaffoldPlay extends AutoPlugin {
           new AnormEnabler().execute(ctx)
         case BuildInfoEnablerChoice =>
           new BuildInfoEnabler().execute(ctx)
+        case ConductrEnablerChoice =>
+          new ConductrEnabler().execute(ctx)
+        case FpEnablerChoice =>
+          new FpEnabler().execute(ctx)
+        case JsonEnablerChoice =>
+          new JsonEnabler().execute(ctx)
+        case LoggerEnablerChoice =>
+          new LoggingEnabler().execute(ctx)
         case ScalariformEnablerChoice =>
           new ScalariformEnabler().execute(ctx)
         case SbtHeaderEnablerChoice =>
@@ -106,7 +120,9 @@ object SbtScaffoldPlay extends AutoPlugin {
       val srcDir = scaffoldSourceDirectory.value
       val resourceDir = scaffoldResourceDirectory.value
       val testDir = scaffoldTestDirectory.value
-      ScaffoldContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(resourceDir), ammonite.ops.Path(testDir), organization.value)
+      val organizationName: String = organization.value
+      val projectName: String = name.value
+      ScaffoldContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(resourceDir), ammonite.ops.Path(testDir), organizationName, projectName)
     },
 
     scaffold := {
