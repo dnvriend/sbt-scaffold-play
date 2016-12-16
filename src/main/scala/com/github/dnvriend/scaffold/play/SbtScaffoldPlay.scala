@@ -17,6 +17,7 @@
 package com.github.dnvriend.scaffold.play
 
 import com.github.dnvriend.scaffold.play.enabler.EnablerContext
+import com.github.dnvriend.scaffold.play.enabler.anorm.AnormEnabler
 import com.github.dnvriend.scaffold.play.enabler.buildinfo.BuildInfoEnabler
 import com.github.dnvriend.scaffold.play.enabler.sbtheader.SbtHeaderEnabler
 import com.github.dnvriend.scaffold.play.enabler.scalariform.ScalariformEnabler
@@ -82,6 +83,8 @@ object SbtScaffoldPlay extends AutoPlugin {
       implicit val log: Logger = streams.value.log
       val choice = Parsers.enablerParser.parsed
       val enablerResult = choice match {
+        case AnormEnablerChoice =>
+          new AnormEnabler().execute(ctx)
         case BuildInfoEnablerChoice =>
           new BuildInfoEnabler().execute(ctx)
         case ScalariformEnablerChoice =>

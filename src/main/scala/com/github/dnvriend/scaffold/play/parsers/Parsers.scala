@@ -51,16 +51,18 @@ object Parsers {
   case object DtoChoice extends ScaffoldChoice
 
   sealed trait EnablerChoice extends Choice
+  case object AnormEnablerChoice extends EnablerChoice
   case object BuildInfoEnablerChoice extends EnablerChoice
   case object ScalariformEnablerChoice extends EnablerChoice
   case object SbtHeaderEnablerChoice extends EnablerChoice
 
   val enablerParser: Parser[EnablerChoice] = {
+    val anorm: Parser[EnablerChoice] = "anorm" ^^^ AnormEnablerChoice
     val buildinfo: Parser[EnablerChoice] = "buildinfo" ^^^ BuildInfoEnablerChoice
     val scalariform: Parser[EnablerChoice] = "scalariform" ^^^ ScalariformEnablerChoice
     val sbtHeader: Parser[EnablerChoice] = ("header" | "sbt-header" | "sbtHeader") ^^^ SbtHeaderEnablerChoice
 
-    DefaultParsers.token(Space ~> (buildinfo | scalariform | sbtHeader))
+    DefaultParsers.token(Space ~> (anorm | buildinfo | scalariform | sbtHeader))
   }
 
   val scaffoldParser: Parser[ScaffoldChoice] = {

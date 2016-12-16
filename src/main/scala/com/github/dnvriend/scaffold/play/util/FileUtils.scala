@@ -36,12 +36,12 @@ object FileUtils {
   def writeFile(path: Path, content: String): Disjunction[String, Path] =
     Disjunction.fromTryCatchNonFatal(writeToFile(path, content))
 
-  def writeToFile(path: Path, content: String): Path = {
+  private def writeToFile(path: Path, content: String): Path = {
     write(path, content)
     path
   }
 
-  def appendToFile(path: Path, content: String): Path = {
+  private def appendToFile(path: Path, content: String): Path = {
     write.append(path, content + "\n")
     path
   }
@@ -51,4 +51,15 @@ object FileUtils {
 
   def appendToRoutes(resourceDir: Path, content: String): Disjunction[String, Path] =
     append(resourceDir / "routes", content)
+
+  def appendToApplication(resourceDir: Path, content: String): Disjunction[String, Path] =
+    append(resourceDir / "application.conf", content)
+
+  private def makeDir(path: Path): Path = {
+    mkdir(path)
+    path
+  }
+
+  def createDirectory(path: Path): Disjunction[String, Path] =
+    Disjunction.fromTryCatchNonFatal(makeDir(path))
 }
