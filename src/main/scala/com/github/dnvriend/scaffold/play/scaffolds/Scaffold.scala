@@ -16,6 +16,8 @@
 
 package com.github.dnvriend.scaffold.play.scaffolds
 
+import scalaz.Disjunction
+
 trait Scaffold {
-  def execute(ctx: ScaffoldContext): Unit
+  def execute(ctx: ScaffoldContext): Disjunction[String, ScaffoldResult]
 }

@@ -17,40 +17,24 @@
 package com.github.dnvriend.scaffold.play.scaffolds.wsclient
 
 import ammonite.ops._
-import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext }
+import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext, ScaffoldResult }
 import com.github.dnvriend.scaffold.play.userinput.PackageClassUserInput
 import com.github.dnvriend.scaffold.play.util.FileUtils
-import sbt.Logger
+import com.github.dnvriend.scaffold.play.util.DisjunctionOps.DisjunctionOfThrowableToDisjunctionOfString
 
 import scalaz._
 
-object WsClientScaffold {
-  final val ID: String = classOf[WsClientScaffold].getName
-  final val DefaultClassName = "DefaultWsClient"
-}
+final case class WsClientScaffoldResult(input: PackageClassUserInput, content: String, createdClass: Path) extends ScaffoldResult
 
-class WsClientScaffold(implicit log: Logger) extends Scaffold {
-
-  override def execute(ctx: ScaffoldContext): Unit = {
-    log.debug("Scaffolding a web service client: " + ctx)
-
-    val maybeResult: Disjunction[String, Path] = for {
-      input <- PackageClassUserInput.askUser(ctx.organization, WsClientScaffold.DefaultClassName)
-      content <- generateContent(input.packageName, input.className)
-      createdClass <- create(ctx.srcDir, input.packageName, input.className, content)
-    } yield createdClass
-
-    maybeResult match {
-      case DRight(created) =>
-        log.info(s"Successfully created: $created")
-      case DLeft(message) =>
-        log.warn(s"Could not scaffold a web service client: $message")
-    }
-  }
+class WsClientScaffold extends Scaffold {
+  override def execute(ctx: ScaffoldContext): Disjunction[String, ScaffoldResult] = for {
+    input <- PackageClassUserInput.askUser(ctx.organization, "DefaultWsClient")
+    content <- generateContent(input.packageName, input.className)
+    createdClass <- create(ctx.srcDir, input.packageName, input.className, content)
+  } yield WsClientScaffoldResult(input, content, createdClass)
 
   def generateContent(packageName: String, className: String): Disjunction[String, String] =
     Disjunction.fromTryCatchNonFatal(Template.render(packageName, className).toString)
-      .leftMap(_.toString)
 
   def create(srcDir: Path, packageName: String, className: String, content: String): Disjunction[String, Path] =
     FileUtils.createClass(srcDir, packageName, className, content)
@@ -59,14 +43,14 @@ class WsClientScaffold(implicit log: Logger) extends Scaffold {
 object Template {
   def render(packageName: String, className: String): String =
     s"""package $packageName
-    |
+       |
     |import javax.inject.Inject
-    |import play.api.libs.ws.{WSClient, WSRequest}
-    |import scala.concurrent.{ExecutionContext, Future}
-    |import org.slf4j.{ Logger, LoggerFactory }
-    |
+       |import play.api.libs.ws.{WSClient, WSRequest}
+       |import scala.concurrent.{ExecutionContext, Future}
+       |import org.slf4j.{ Logger, LoggerFactory }
+       |
     |class $className @Inject() (wsClient: WSClient)(implicit ec: ExecutionContext) {
-    |  val log: Logger = LoggerFactory.getLogger(this.getClass)
-    |}
+       |  val log: Logger = LoggerFactory.getLogger(this.getClass)
+       |}
   """.stripMargin
 }

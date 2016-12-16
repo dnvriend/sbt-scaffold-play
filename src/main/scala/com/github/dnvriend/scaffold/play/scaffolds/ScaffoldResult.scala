@@ -14,15 +14,6 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play.repository
+package com.github.dnvriend.scaffold.play.scaffolds
 
-import sbt.Logger
-
-object ScaffoldRepository {
-
-  final case class ProductType(name: String)
-}
-
-class ScaffoldRepository(implicit log: Logger) {
-
-}
+trait ScaffoldResult

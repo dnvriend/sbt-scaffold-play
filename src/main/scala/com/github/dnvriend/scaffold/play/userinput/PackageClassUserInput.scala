@@ -21,7 +21,7 @@ import com.github.dnvriend.scaffold.play.util.UserInput
 
 import scalaz.Disjunction
 
-final case class PackageClassUserInput(packageName: String, className: String)
+final case class PackageClassUserInput(packageName: String, className: String) extends UserInput
 
 object PackageClassUserInput {
   def askUser(defaultPackageName: String, defaultClassName: String): Disjunction[String, PackageClassUserInput] = for {

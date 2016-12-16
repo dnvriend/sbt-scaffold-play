@@ -17,29 +17,39 @@
 package com.github.dnvriend.scaffold.play.scaffolds.dto
 
 import ammonite.ops.Path
-import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext }
-import com.github.dnvriend.scaffold.play.userinput.{ PackageClassUserInput, ProductUserInput }
-import sbt.Logger
+import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext, ScaffoldResult }
+import com.github.dnvriend.scaffold.play.userinput.ProductUserInput
+import com.github.dnvriend.scaffold.play.util.DisjunctionOps._
+import com.github.dnvriend.scaffold.play.util.FileUtils
 
 import scalaz._
-import Scalaz._
 
-object DtoScaffold {
-  final val ID: String = classOf[DtoScaffold].getName
-  final val DefaultClassName = "DefaultDto"
+final case class DtoScaffoldResult(input: ProductUserInput, content: String, createdClass: Path) extends ScaffoldResult
+
+class DtoScaffold extends Scaffold {
+  override def execute(ctx: ScaffoldContext): Disjunction[String, ScaffoldResult] = for {
+    input <- ProductUserInput.askUser(ctx.organization, "DefaultDto")
+    content <- generateContent(input.packageName, input.className, input.render)
+    createdClass <- create(ctx.srcDir, input.packageName, input.className, content)
+  } yield DtoScaffoldResult(input, content, createdClass)
+
+  def generateContent(packageName: String, className: String, renderedClass: String): Disjunction[String, String] =
+    Disjunction.fromTryCatchNonFatal(Template.render(packageName, className, renderedClass))
+
+  def create(srcDir: Path, packageName: String, className: String, content: String): Disjunction[String, Path] =
+    FileUtils.createClass(srcDir, packageName, className, content)
 }
 
-class DtoScaffold(implicit log: Logger) extends Scaffold {
-  override def execute(ctx: ScaffoldContext): Unit = {
-    val maybeResult: Disjunction[String, ProductUserInput] = for {
-      input <- ProductUserInput.askUser(ctx.organization, DtoScaffold.DefaultClassName)
-    } yield input
-
-    maybeResult match {
-      case DRight(created) =>
-        log.info(s"Successfully created: $created")
-      case DLeft(message) =>
-        log.warn(s"Could not scaffold a web service client: $message")
-    }
-  }
+object Template {
+  def render(packageName: String, className: String, renderedClass: String): String =
+    s"""package $packageName
+       |
+       |import play.api.libs.json._
+       |
+       |object $className {
+       | implicit val format: Format[$className] = Json.format[$className]
+       |}
+       |
+       |case class $renderedClass
+  """.stripMargin
 }

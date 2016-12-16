@@ -19,22 +19,25 @@ package com.github.dnvriend.scaffold.play.util
 import ammonite.ops._
 
 import scalaz.Disjunction
+import com.github.dnvriend.scaffold.play.util.DisjunctionOps.DisjunctionOfThrowableToDisjunctionOfString
 
 object FileUtils {
-  def createClassFile(srcDir: Path, packageName: String, className: String): Disjunction[String, Path] =
+  def determinePath(srcDir: Path, packageName: String, className: String): Disjunction[String, Path] =
     Disjunction.fromTryCatchNonFatal {
       val packageNameAsPath = RelPath(packageName.replace(".", "/"))
       srcDir / packageNameAsPath / s"${className}.scala"
-    }.leftMap(_.toString)
+    }
 
   def createClass(srcDir: Path, packageName: String, className: String, content: String): Disjunction[String, Path] = for {
-    toFile <- createClassFile(srcDir, packageName, className)
-    writtenFile <- writeFile(toFile, content)
+    path <- determinePath(srcDir, packageName, className)
+    writtenFile <- writeFile(path, content)
   } yield writtenFile
 
   def writeFile(path: Path, content: String): Disjunction[String, Path] =
-    Disjunction.fromTryCatchNonFatal {
-      write(path, content)
-      path
-    }.leftMap(_.toString)
+    Disjunction.fromTryCatchNonFatal(writeToFile(path, content))
+
+  def writeToFile(path: Path, content: String): Path = {
+    write(path, content)
+    path
+  }
 }

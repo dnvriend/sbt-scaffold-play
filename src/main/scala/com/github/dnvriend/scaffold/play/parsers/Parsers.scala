@@ -50,6 +50,15 @@ object Parsers {
   case object WsClientChoice extends ScaffoldChoice
   case object DtoChoice extends ScaffoldChoice
 
+  sealed trait EnablerChoice extends Choice
+  case object BuildInfoEnablerChoice extends EnablerChoice
+
+  val enablerParser: Parser[EnablerChoice] = {
+    val buildinfo: Parser[EnablerChoice] = "buildinfo" ^^^ BuildInfoEnablerChoice
+
+    DefaultParsers.token(Space ~> buildinfo)
+  }
+
   val scaffoldParser: Parser[ScaffoldChoice] = {
     val controller: Parser[ScaffoldChoice] = "controller" ^^^ ControllerChoice
     val pingcontroller: Parser[ScaffoldChoice] = "pingcontroller" ^^^ PingControllerChoice
@@ -86,9 +95,12 @@ object Parsers {
     }
   }.examples(defaults: _*)
 
-  val yParser: Parser[Choice] = ("y" | "yes") ^^^ Yes
-  val nParser: Parser[Choice] = ("n" | "no" | "exit" | "stop" | "quit" | "end" | "break") ^^^ No
-  val ynParser: Parser[Choice] = yParser | nParser
+  val ynParser: Parser[Choice] = {
+    val yParser: Parser[Choice] = ("y" | "yes") ^^^ Yes
+    val nParser: Parser[Choice] = ("n" | "no" | "exit" | "stop" | "quit" | "end" | "break") ^^^ No
+
+    yParser | nParser
+  }
 
   val fieldNameParser: Parser[String] = (lowercaseChar.+.map(_.mkString) ~ DefaultParsers.StringBasic).map {
     case (lower, all) => lower + all

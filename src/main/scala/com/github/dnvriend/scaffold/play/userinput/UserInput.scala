@@ -14,19 +14,6 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play.scaffolds.dto
+package com.github.dnvriend.scaffold.play.userinput
 
-object Template {
-  def render(packageName: String, className: String): String =
-    s"""package $packageName
-      |
-      |package com.github.dnvriend.model
-      |
-      |import play.api.libs.json.Json
-      |
-      |object $className {
-      |  implicit val format = Json.format[$className]
-      |}
-      |final case class $className(id: Long)
-    """.stripMargin
-}
+trait UserInput

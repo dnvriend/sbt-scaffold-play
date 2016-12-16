@@ -23,7 +23,7 @@ import com.github.dnvriend.scaffold.play.util.UserInput
 import scalaz._
 import Scalaz._
 
-final case class ProductUserInput(packageName: String, className: String, fields: List[(String, FieldType)]) {
+final case class ProductUserInput(packageName: String, className: String, fields: List[(String, FieldType)]) extends UserInput {
   def render: String = ProductUserInput.renderProductType(className, fields)
 }
 

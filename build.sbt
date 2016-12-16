@@ -11,10 +11,17 @@ sbtPlugin := true
 libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.7"
 libraryDependencies += "com.h2database" % "h2" % "1.4.193"
 libraryDependencies += "com.lihaoyi" %% "ammonite-ops" % "0.8.1"
+libraryDependencies += "com.lihaoyi" %% "upickle" % "0.4.3"
+libraryDependencies += "org.scalamacros" %% "quasiquotes" % "2.0.0" % "provided"
 
 // testing
 libraryDependencies += "org.typelevel" %% "scalaz-scalatest" % "1.1.1" % Test
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1"
+
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+
+resolvers += Resolver.typesafeRepo("releases")
+resolvers += Resolver.sonatypeRepo("releases")
 
 licenses +=("Apache-2.0", url("http://opensource.org/licenses/apache2.0.php"))
 

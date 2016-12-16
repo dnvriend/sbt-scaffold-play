@@ -16,12 +16,17 @@
 
 package com.github.dnvriend.scaffold.play.scaffolds.controller
 
-import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext }
-import sbt.Logger
+import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext, ScaffoldResult }
 
-object ControllerScaffold {
-  final val ID: String = classOf[ControllerScaffold].getName
-  final case class UserInput(packageName: String, className: String)
+import scalaz.Scalaz._
+import scalaz._
+
+final case class ControllerScaffoldResult() extends ScaffoldResult
+
+class ControllerScaffold extends Scaffold {
+  override def execute(ctx: ScaffoldContext): Disjunction[String, ScaffoldResult] = {
+    "Controller scaffold not yet implemented".left[ControllerScaffoldResult]
+  }
 }
 
 object Template {
@@ -29,18 +34,12 @@ object Template {
     s"""package $packageName
     |
     |import javax.inject.Inject
-    |import play.api.mvc.{ Action, Controller }
-    |import org.slf4j.{ Logger, LoggerFactory }
-    |
+       |import play.api.mvc.{ Action, Controller }
+       |import org.slf4j.{ Logger, LoggerFactory }
+       |
     |class $className @Inject() () extends Controller {
-    |   val log: Logger = LoggerFactory.getLogger(this.getClass)
-    |   def action = Action(Ok)
-    |}
+       |   val log: Logger = LoggerFactory.getLogger(this.getClass)
+       |   def action = Action(Ok)
+       |}
   """.stripMargin
-}
-
-class ControllerScaffold(implicit log: Logger) extends Scaffold {
-  override def execute(ctx: ScaffoldContext): Unit = {
-    log.info("Scaffolding a simple controller")
-  }
 }

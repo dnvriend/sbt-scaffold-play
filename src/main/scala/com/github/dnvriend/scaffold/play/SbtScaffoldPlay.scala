@@ -27,6 +27,8 @@ import com.github.dnvriend.scaffold.play.scaffolds.controller.ControllerScaffold
 import com.github.dnvriend.scaffold.play.scaffolds.dto.DtoScaffold
 import sbt.Keys._
 import sbt._
+import scalaz._
+import Scalaz._
 
 object SbtScaffoldPlay extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
@@ -88,9 +90,9 @@ object SbtScaffoldPlay extends AutoPlugin {
 
     scaffold := {
       val ctx = scaffoldContext.value
-      implicit val log: Logger = streams.value.log
+      val log: Logger = streams.value.log
       val choice: ScaffoldChoice = Parsers.scaffoldParser.parsed
-      choice match {
+      val scaffoldResult = choice match {
         case ControllerChoice =>
           new ControllerScaffold().execute(ctx)
         case PingControllerChoice =>
@@ -99,6 +101,13 @@ object SbtScaffoldPlay extends AutoPlugin {
           new WsClientScaffold().execute(ctx)
         case DtoChoice =>
           new DtoScaffold().execute(ctx)
+      }
+
+      scaffoldResult match {
+        case DRight(scaffoldResult) =>
+          log.info(s"Successfully created: ${scaffoldResult.getClass.getSimpleName}")
+        case DLeft(message) =>
+          log.warn(s"Oops: could not scaffold due to: $message")
       }
     }
   )

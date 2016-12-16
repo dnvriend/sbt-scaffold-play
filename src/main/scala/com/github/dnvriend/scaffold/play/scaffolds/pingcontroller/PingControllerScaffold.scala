@@ -16,12 +16,15 @@
 
 package com.github.dnvriend.scaffold.play.scaffolds.pingcontroller
 
-import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext }
-import sbt.Logger
+import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext, ScaffoldResult }
 
-class PingControllerScaffold(implicit log: Logger) extends Scaffold {
+import scalaz._
+import Scalaz._
 
-  override def execute(ctx: ScaffoldContext): Unit = {
-    log.info("scaffolding a ping controller")
+final case class PingControllerScaffoldResult() extends ScaffoldResult
+
+class PingControllerScaffold extends Scaffold {
+  override def execute(ctx: ScaffoldContext): Disjunction[String, ScaffoldResult] = {
+    "PingController not yet implemented".left[PingControllerScaffoldResult]
   }
 }

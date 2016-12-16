@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play.repository
+package com.github.dnvriend.scaffold.play.util
 
-import sbt.Logger
+import scala.language.implicitConversions
+import scalaz.Disjunction
 
-object ScaffoldRepository {
-
-  final case class ProductType(name: String)
-}
-
-class ScaffoldRepository(implicit log: Logger) {
-
+object DisjunctionOps {
+  implicit def DisjunctionOfThrowableToDisjunctionOfString[A](that: Disjunction[Throwable, A]): Disjunction[String, A] = that.leftString
+  implicit class DisjunctionImplicits[A](val that: Disjunction[Throwable, A]) extends AnyVal {
+    def leftString: Disjunction[String, A] = that.leftMap(_.toString)
+  }
 }
