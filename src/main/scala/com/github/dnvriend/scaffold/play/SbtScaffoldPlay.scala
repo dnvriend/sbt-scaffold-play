@@ -16,19 +16,20 @@
 
 package com.github.dnvriend.scaffold.play
 
+import com.github.dnvriend.scaffold.play.enabler.EnablerContext
 import com.github.dnvriend.scaffold.play.enabler.buildinfo.BuildInfoEnabler
-import com.github.dnvriend.scaffold.play.enabler.{ BuildInfoEnablerChoice, EnablerChoice, EnablerContext }
+import com.github.dnvriend.scaffold.play.enabler.scalariform.ScalariformEnabler
 import com.github.dnvriend.scaffold.play.parsers.Parsers
 import com.github.dnvriend.scaffold.play.parsers.Parsers._
-import com.github.dnvriend.scaffold.play.scaffolds.wsclient.WsClientScaffold
-import com.github.dnvriend.scaffold.play.scaffolds.pingcontroller.PingControllerScaffold
 import com.github.dnvriend.scaffold.play.scaffolds._
 import com.github.dnvriend.scaffold.play.scaffolds.controller.ControllerScaffold
 import com.github.dnvriend.scaffold.play.scaffolds.dto.DtoScaffold
+import com.github.dnvriend.scaffold.play.scaffolds.pingcontroller.PingControllerScaffold
+import com.github.dnvriend.scaffold.play.scaffolds.wsclient.WsClientScaffold
 import sbt.Keys._
 import sbt._
+
 import scalaz._
-import Scalaz._
 
 object SbtScaffoldPlay extends AutoPlugin {
   override def trigger: PluginTrigger = allRequirements
@@ -78,10 +79,19 @@ object SbtScaffoldPlay extends AutoPlugin {
     enable := {
       val ctx = enablerContext.value
       implicit val log: Logger = streams.value.log
-      val choice = EnablerChoice.parser.parsed
-      choice match {
+      val choice = Parsers.enablerParser.parsed
+      val enablerResult = choice match {
         case BuildInfoEnablerChoice =>
           new BuildInfoEnabler().execute(ctx)
+        case ScalariformEnablerChoice =>
+          new ScalariformEnabler().execute(ctx)
+      }
+
+      enablerResult match {
+        case DRight(_) =>
+          log.info("Enable complete")
+        case DLeft(message) =>
+          log.warn(s"Oops, could not enable due to: $message")
       }
     },
 
@@ -110,9 +120,9 @@ object SbtScaffoldPlay extends AutoPlugin {
 
       scaffoldResult match {
         case DRight(_) =>
-          log.info("Scaffold completed")
+          log.info("Scaffold complete")
         case DLeft(message) =>
-          log.warn(s"Oops: could not scaffold due to: $message")
+          log.warn(s"Oops, could not scaffold due to: $message")
       }
     }
   )

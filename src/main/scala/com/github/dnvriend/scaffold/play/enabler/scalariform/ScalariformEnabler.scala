@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play.enabler.buildinfo
+package com.github.dnvriend.scaffold.play.enabler.scalariform
 
 import ammonite.ops._
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
@@ -22,40 +22,36 @@ import com.github.dnvriend.scaffold.play.util.FileUtils
 
 import scalaz.Disjunction
 
-final case class BuildInfoEnablerResult(settings: Path, plugin: Path) extends EnablerResult
+final case class ScalariformEnablerResult(settings: Path, plugin: Path) extends EnablerResult
 
-class BuildInfoEnabler extends Enabler {
+class ScalariformEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
     settings <- createBuildInfoSettings(ctx.baseDir, Template.settings())
     plugin <- createBuildInfoPlugin(ctx.baseDir, Template.plugin())
-  } yield BuildInfoEnablerResult(settings, plugin)
+  } yield ScalariformEnablerResult(settings, plugin)
 
   def createBuildInfoSettings(baseDir: Path, content: String): Disjunction[String, Path] =
-    FileUtils.writeFile(baseDir / "build-buildinfo.sbt", content)
+    FileUtils.writeFile(baseDir / "build-scalariform.sbt", content)
 
   def createBuildInfoPlugin(baseDir: Path, content: String): Disjunction[String, Path] = {
-    FileUtils.writeFile(baseDir / "project" / "plugin-buildinfo.sbt", content)
+    FileUtils.writeFile(baseDir / "project" / "plugin-scalariform.sbt", content)
   }
 }
 
 object Template {
   def settings(): String =
     """
-      |enablePlugins(BuildInfoPlugin)
+      |import scalariform.formatter.preferences._
+      |import com.typesafe.sbt.SbtScalariform
       |
-      |buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
-      |
-      |buildInfoOptions += BuildInfoOption.ToMap
-      |
-      |buildInfoOptions += BuildInfoOption.ToJson
-      |
-      |buildInfoOptions += BuildInfoOption.BuildTime
-      |
-      |buildInfoPackage := organization.value
+      |SbtScalariform.autoImport.scalariformPreferences := SbtScalariform.autoImport.scalariformPreferences.value
+      |  .setPreference(AlignSingleLineCaseStatements, true)
+      |  .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 100)
+      |  .setPreference(DoubleIndentClassDeclaration, true)
     """.stripMargin
 
   def plugin(): String =
     """
-    |addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.6.1")
-  """.stripMargin
+      |addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")
+    """.stripMargin
 }
