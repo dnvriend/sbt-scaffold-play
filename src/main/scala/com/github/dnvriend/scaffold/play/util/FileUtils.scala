@@ -40,4 +40,15 @@ object FileUtils {
     write(path, content)
     path
   }
+
+  def appendToFile(path: Path, content: String): Path = {
+    write.append(path, content + "\n")
+    path
+  }
+
+  def append(path: Path, content: String): Disjunction[String, Path] =
+    Disjunction.fromTryCatchNonFatal(appendToFile(path, content))
+
+  def appendToRoutes(resourceDir: Path, content: String): Disjunction[String, Path] =
+    append(resourceDir / "routes", content)
 }

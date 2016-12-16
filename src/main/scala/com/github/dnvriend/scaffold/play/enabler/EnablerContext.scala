@@ -18,4 +18,4 @@ package com.github.dnvriend.scaffold.play.enabler
 
 import ammonite.ops._
 
-final case class EnablerContext(baseDir: Path, srcDir: Path, testDir: Path, organization: String)
+final case class EnablerContext(baseDir: Path, srcDir: Path, resourceDir: Path, testDir: Path, organization: String)

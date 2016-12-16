@@ -68,25 +68,7 @@ object Parsers {
     DefaultParsers.token(Space ~> (controller | pingcontroller | wsclient | dto))
   }
 
-  val lowercaseChar: Parser[Char] = DefaultParsers.charClass(c => c.isLetter && c.isLower, "lower case character")
-  val dotParser: Parser[Char] = DefaultParsers.charClass(c => c == '.', "dot")
-  val fragmentParser: Parser[(Option[Char], Seq[Char])] = dotParser.? ~ lowercaseChar.+
-
-  def packageParser(defaults: String*): Parser[String] = {
-    def fragmentToString(fragment: (Option[Char], Seq[Char])): String = {
-      def getDot: String = fragment._1.map(_.toString).getOrElse("")
-      def getPackageFragement: String = fragment._2.mkString
-      getDot + getPackageFragement
-    }
-
-    def loop(fragments: List[(Option[Char], Seq[Char])], acc: List[String]): String =
-      if (fragments.isEmpty) acc.mkString else loop(fragments.tail, acc :+ fragmentToString(fragments.head))
-
-    (lowercaseChar.+ ~ fragmentParser.+.? <~ EOF).map {
-      case (xs: Seq[Char], fragments) =>
-        xs.mkString + loop(fragments.map(_.toList).sequenceU.flatten, List.empty[String])
-    }.examples(defaults: _*)
-  }
+  def packageParser(defaults: String*): Parser[String] = StringBasic.examples(defaults: _*)
 
   def classNameParser(defaults: String*): Parser[String] = {
     val upperCase = DefaultParsers.charClass(c => c.isLetter && c.isUpper, "upper case character")
@@ -102,8 +84,11 @@ object Parsers {
     yParser | nParser
   }
 
-  val fieldNameParser: Parser[String] = (lowercaseChar.+.map(_.mkString) ~ DefaultParsers.StringBasic).map {
-    case (lower, all) => lower + all
+  val fieldNameParser: Parser[String] = {
+    val lowercaseChar = charClass(c => c.isLetter && c.isLower, "lower case character")
+    (lowercaseChar.+.map(_.mkString) ~ DefaultParsers.StringBasic).map {
+      case (lower, all) => lower + all
+    }
   }
 
   val higherKindedParser: Parser[String] = {

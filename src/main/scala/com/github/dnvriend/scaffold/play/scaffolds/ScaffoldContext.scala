@@ -18,4 +18,4 @@ package com.github.dnvriend.scaffold.play.scaffolds
 
 import ammonite.ops.Path
 
-final case class ScaffoldContext(baseDir: Path, srcDir: Path, testDir: Path, organization: String)
+final case class ScaffoldContext(baseDir: Path, srcDir: Path, resourceDir: Path, testDir: Path, organization: String)

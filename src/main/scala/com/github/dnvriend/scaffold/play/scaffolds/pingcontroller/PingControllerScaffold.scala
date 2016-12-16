@@ -16,15 +16,44 @@
 
 package com.github.dnvriend.scaffold.play.scaffolds.pingcontroller
 
+import ammonite.ops._
 import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext, ScaffoldResult }
+import com.github.dnvriend.scaffold.play.userinput.ControllerUserInput
+import com.github.dnvriend.scaffold.play.util.DisjunctionOps.DisjunctionOfThrowableToDisjunctionOfString
+import com.github.dnvriend.scaffold.play.util.FileUtils
 
-import scalaz._
-import Scalaz._
+import scalaz.Disjunction
 
-final case class PingControllerScaffoldResult() extends ScaffoldResult
+final case class PingControllerScaffoldResult(input: ControllerUserInput, content: String, createdClass: Path) extends ScaffoldResult
 
 class PingControllerScaffold extends Scaffold {
-  override def execute(ctx: ScaffoldContext): Disjunction[String, ScaffoldResult] = {
-    "PingController not yet implemented".left[PingControllerScaffoldResult]
-  }
+  override def execute(ctx: ScaffoldContext): Disjunction[String, ScaffoldResult] = for {
+    input <- ControllerUserInput.askUser(ctx.organization + ".controller", "PingController", Option("/api/ping"))
+    content <- generateContent(input.packageName, input.className)
+    createdClass <- create(ctx.srcDir, input.packageName, input.className, content)
+    _ <- addRoute(ctx.resourceDir, input.packageName, input.className, input.resourceName)
+  } yield PingControllerScaffoldResult(input, content, createdClass)
+
+  def addRoute(resourceDir: Path, packageName: String, className: String, resourceName: String): Disjunction[String, Path] =
+    FileUtils.appendToRoutes(resourceDir, s"GET $resourceName $packageName.$className.ping")
+
+  def generateContent(packageName: String, className: String): Disjunction[String, String] =
+    Disjunction.fromTryCatchNonFatal(Template.render(packageName, className))
+
+  def create(srcDir: Path, packageName: String, className: String, content: String): Disjunction[String, Path] =
+    FileUtils.createClass(srcDir, packageName, className, content)
+}
+
+object Template {
+  def render(packageName: String, className: String): String =
+    s"""package $packageName
+       |
+       |import play.api.mvc.{ Action, Controller }
+       |import org.slf4j.{ Logger, LoggerFactory }
+       |
+       |class $className extends Controller {
+       |   val log: Logger = LoggerFactory.getLogger(this.getClass)
+       |   def ping = Action(Ok("pong"))
+       |}
+  """.stripMargin
 }

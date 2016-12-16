@@ -16,17 +16,33 @@
 
 package com.github.dnvriend.scaffold.play.scaffolds.controller
 
+import ammonite.ops._
 import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext, ScaffoldResult }
+import com.github.dnvriend.scaffold.play.userinput.ControllerUserInput
+import com.github.dnvriend.scaffold.play.util.DisjunctionOps.DisjunctionOfThrowableToDisjunctionOfString
+import com.github.dnvriend.scaffold.play.util.FileUtils
 
-import scalaz.Scalaz._
 import scalaz._
 
-final case class ControllerScaffoldResult() extends ScaffoldResult
+final case class ControllerScaffoldResult(input: ControllerUserInput, content: String, createdClass: Path) extends ScaffoldResult
 
 class ControllerScaffold extends Scaffold {
-  override def execute(ctx: ScaffoldContext): Disjunction[String, ScaffoldResult] = {
-    "Controller scaffold not yet implemented".left[ControllerScaffoldResult]
-  }
+  override def execute(ctx: ScaffoldContext): Disjunction[String, ScaffoldResult] = for {
+    input <- ControllerUserInput.askUser(ctx.organization + ".controller", "DefaultController")
+    content <- generateContent(input.packageName, input.className)
+    _ <- addRoute(ctx.resourceDir, input.packageName, input.className, input.resourceName)
+    createdClass <- create(ctx.srcDir, input.packageName, input.className, content)
+
+  } yield ControllerScaffoldResult(input, content, createdClass)
+
+  def addRoute(resourceDir: Path, packageName: String, className: String, resourceName: String): Disjunction[String, Path] =
+    FileUtils.appendToRoutes(resourceDir, s"GET $resourceName $packageName.$className.action")
+
+  def generateContent(packageName: String, className: String): Disjunction[String, String] =
+    Disjunction.fromTryCatchNonFatal(Template.render(packageName, className))
+
+  def create(srcDir: Path, packageName: String, className: String, content: String): Disjunction[String, Path] =
+    FileUtils.createClass(srcDir, packageName, className, content)
 }
 
 object Template {
@@ -34,12 +50,12 @@ object Template {
     s"""package $packageName
     |
     |import javax.inject.Inject
-       |import play.api.mvc.{ Action, Controller }
-       |import org.slf4j.{ Logger, LoggerFactory }
-       |
+    |import play.api.mvc.{ Action, Controller }
+    |import org.slf4j.{ Logger, LoggerFactory }
+    |
     |class $className @Inject() () extends Controller {
-       |   val log: Logger = LoggerFactory.getLogger(this.getClass)
-       |   def action = Action(Ok)
-       |}
+    |   val log: Logger = LoggerFactory.getLogger(this.getClass)
+    |   def action = Action(Ok)
+    |}
   """.stripMargin
 }

@@ -38,8 +38,9 @@ object SbtScaffoldPlay extends AutoPlugin {
   object autoImport {
     val scaffoldBuildInfo: SettingKey[String] = settingKey[String]("The scaffold build info")
     val scaffoldDirectory: SettingKey[File] = settingKey[File]("The scaffold directory containing the play application settings and h2 database")
-    val scaffoldSourceDirectory = settingKey[File]("The compile source directory that scaffold will use to generate files")
-    val scaffoldTestDirectory = settingKey[File]("The test source directory that scaffold will use to generate files")
+    val scaffoldSourceDirectory: SettingKey[File] = settingKey[File]("The compile source directory that scaffold will use to generate files")
+    val scaffoldTestDirectory: SettingKey[File] = settingKey[File]("The test source directory that scaffold will use to generate files")
+    val scaffoldResourceDirectory: SettingKey[File] = settingKey[File]("The compile resource directory that scaffold will use to generate/append configuration")
     val scaffoldDb: SettingKey[File] = settingKey[File]("The scaffold database location")
     val enable: InputKey[Unit] = inputKey[Unit]("enables features in play")
     val scaffold: InputKey[Unit] = inputKey[Unit]("scaffold features in play")
@@ -62,13 +63,16 @@ object SbtScaffoldPlay extends AutoPlugin {
 
     scaffoldTestDirectory := (sourceDirectories in Test).value.find(file => file.absolutePath.endsWith("scala") || file.absolutePath.endsWith("app")).getOrElse((sourceDirectory in Test).value),
 
+    scaffoldResourceDirectory := (resourceDirectory in Compile).value,
+
     scaffoldBuildInfo := BuildInfo.toString,
 
     enablerContext := {
       val baseDir = baseDirectory.value
       val srcDir = scaffoldSourceDirectory.value
+      val resourceDir = scaffoldResourceDirectory.value
       val testDir = scaffoldTestDirectory.value
-      EnablerContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(testDir), organization.value)
+      EnablerContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(resourceDir), ammonite.ops.Path(testDir), organization.value)
     },
 
     enable := {
@@ -84,8 +88,9 @@ object SbtScaffoldPlay extends AutoPlugin {
     scaffoldContext := {
       val baseDir = baseDirectory.value
       val srcDir = scaffoldSourceDirectory.value
+      val resourceDir = scaffoldResourceDirectory.value
       val testDir = scaffoldTestDirectory.value
-      ScaffoldContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(testDir), organization.value)
+      ScaffoldContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(resourceDir), ammonite.ops.Path(testDir), organization.value)
     },
 
     scaffold := {

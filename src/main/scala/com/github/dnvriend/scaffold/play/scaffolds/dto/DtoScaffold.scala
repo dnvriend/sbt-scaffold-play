@@ -28,7 +28,7 @@ final case class DtoScaffoldResult(input: ProductUserInput, content: String, cre
 
 class DtoScaffold extends Scaffold {
   override def execute(ctx: ScaffoldContext): Disjunction[String, ScaffoldResult] = for {
-    input <- ProductUserInput.askUser(ctx.organization, "DefaultDto")
+    input <- ProductUserInput.askUser(ctx.organization + ".dto", "DefaultDto")
     content <- generateContent(input.packageName, input.className, input.render)
     createdClass <- create(ctx.srcDir, input.packageName, input.className, content)
   } yield DtoScaffoldResult(input, content, createdClass)
