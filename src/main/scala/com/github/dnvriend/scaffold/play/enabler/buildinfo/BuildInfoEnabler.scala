@@ -26,14 +26,14 @@ final case class BuildInfoEnablerResult(settings: Path, plugin: Path) extends En
 
 class BuildInfoEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
-    settings <- createBuildInfoSettings(ctx.baseDir, Template.settings())
-    plugin <- createBuildInfoPlugin(ctx.baseDir, Template.plugin())
+    settings <- createSettings(ctx.baseDir, Template.settings())
+    plugin <- createPlugin(ctx.baseDir, Template.plugin())
   } yield BuildInfoEnablerResult(settings, plugin)
 
-  def createBuildInfoSettings(baseDir: Path, content: String): Disjunction[String, Path] =
+  def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
     FileUtils.writeFile(baseDir / "build-buildinfo.sbt", content)
 
-  def createBuildInfoPlugin(baseDir: Path, content: String): Disjunction[String, Path] = {
+  def createPlugin(baseDir: Path, content: String): Disjunction[String, Path] = {
     FileUtils.writeFile(baseDir / "project" / "plugin-buildinfo.sbt", content)
   }
 }

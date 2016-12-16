@@ -26,14 +26,14 @@ final case class ScalariformEnablerResult(settings: Path, plugin: Path) extends 
 
 class ScalariformEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
-    settings <- createBuildInfoSettings(ctx.baseDir, Template.settings())
-    plugin <- createBuildInfoPlugin(ctx.baseDir, Template.plugin())
+    settings <- createSettings(ctx.baseDir, Template.settings())
+    plugin <- createPlugin(ctx.baseDir, Template.plugin())
   } yield ScalariformEnablerResult(settings, plugin)
 
-  def createBuildInfoSettings(baseDir: Path, content: String): Disjunction[String, Path] =
+  def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
     FileUtils.writeFile(baseDir / "build-scalariform.sbt", content)
 
-  def createBuildInfoPlugin(baseDir: Path, content: String): Disjunction[String, Path] = {
+  def createPlugin(baseDir: Path, content: String): Disjunction[String, Path] = {
     FileUtils.writeFile(baseDir / "project" / "plugin-scalariform.sbt", content)
   }
 }

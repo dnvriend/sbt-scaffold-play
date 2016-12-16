@@ -18,6 +18,7 @@ package com.github.dnvriend.scaffold.play
 
 import com.github.dnvriend.scaffold.play.enabler.EnablerContext
 import com.github.dnvriend.scaffold.play.enabler.buildinfo.BuildInfoEnabler
+import com.github.dnvriend.scaffold.play.enabler.sbtheader.SbtHeaderEnabler
 import com.github.dnvriend.scaffold.play.enabler.scalariform.ScalariformEnabler
 import com.github.dnvriend.scaffold.play.parsers.Parsers
 import com.github.dnvriend.scaffold.play.parsers.Parsers._
@@ -85,6 +86,8 @@ object SbtScaffoldPlay extends AutoPlugin {
           new BuildInfoEnabler().execute(ctx)
         case ScalariformEnablerChoice =>
           new ScalariformEnabler().execute(ctx)
+        case SbtHeaderEnablerChoice =>
+          new SbtHeaderEnabler().execute(ctx)
       }
 
       enablerResult match {
