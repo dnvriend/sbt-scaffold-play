@@ -22,14 +22,14 @@ import scalaz.Disjunction
 import com.github.dnvriend.scaffold.play.util.DisjunctionOps.DisjunctionOfThrowableToDisjunctionOfString
 
 object FileUtils {
-  def determinePath(srcDir: Path, packageName: String, className: String): Disjunction[String, Path] =
+  def dotToSlash(srcDir: Path, packageName: String, className: String): Disjunction[String, Path] =
     Disjunction.fromTryCatchNonFatal {
       val packageNameAsPath = RelPath(packageName.replace(".", "/"))
       srcDir / packageNameAsPath / s"${className}.scala"
     }
 
   def createClass(srcDir: Path, packageName: String, className: String, content: String): Disjunction[String, Path] = for {
-    path <- determinePath(srcDir, packageName, className)
+    path <- dotToSlash(srcDir, packageName, className)
     writtenFile <- writeFile(path, content)
   } yield writtenFile
 
@@ -37,7 +37,7 @@ object FileUtils {
     Disjunction.fromTryCatchNonFatal(writeToFile(path, content))
 
   private def writeToFile(path: Path, content: String): Path = {
-    write(path, content)
+    write.over(path, content)
     path
   }
 
