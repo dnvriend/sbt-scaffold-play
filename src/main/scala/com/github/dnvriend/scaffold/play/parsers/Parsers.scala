@@ -62,6 +62,7 @@ object Parsers {
   case object JsonEnablerChoice extends EnablerChoice
   case object FpEnablerChoice extends EnablerChoice
   case object SbtHeaderEnablerChoice extends EnablerChoice
+  case object SwaggerEnablerChoice extends EnablerChoice
   case object AllEnablerChoice extends EnablerChoice
 
   val enablerParser: Parser[EnablerChoice] = {
@@ -74,9 +75,10 @@ object Parsers {
     val json: Parser[EnablerChoice] = ("json" | "play-json") ^^^ JsonEnablerChoice
     val fp: Parser[EnablerChoice] = ("fp" | "scalaz") ^^^ FpEnablerChoice
     val sbtHeader: Parser[EnablerChoice] = ("header" | "sbt-header" | "sbtHeader") ^^^ SbtHeaderEnablerChoice
+    val swagger: Parser[EnablerChoice] = "swagger" ^^^ SwaggerEnablerChoice
     val all: Parser[EnablerChoice] = "all" ^^^ AllEnablerChoice
 
-    DefaultParsers.token(Space ~> (all | akka | anorm | buildinfo | conductr | scalariform | sbtHeader | logback | json | fp))
+    DefaultParsers.token(Space ~> (all | akka | anorm | buildinfo | conductr | scalariform | sbtHeader | logback | json | fp | swagger))
   }
 
   val scaffoldParser: Parser[ScaffoldChoice] = {

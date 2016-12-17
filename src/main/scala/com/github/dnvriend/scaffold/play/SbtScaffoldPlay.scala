@@ -27,6 +27,7 @@ import com.github.dnvriend.scaffold.play.enabler.json.JsonEnabler
 import com.github.dnvriend.scaffold.play.enabler.logging.LoggingEnabler
 import com.github.dnvriend.scaffold.play.enabler.sbtheader.SbtHeaderEnabler
 import com.github.dnvriend.scaffold.play.enabler.scalariform.ScalariformEnabler
+import com.github.dnvriend.scaffold.play.enabler.swagger.SwaggerEnabler
 import com.github.dnvriend.scaffold.play.parsers.Parsers
 import com.github.dnvriend.scaffold.play.parsers.Parsers._
 import com.github.dnvriend.scaffold.play.scaffolds._
@@ -112,6 +113,8 @@ object SbtScaffoldPlay extends AutoPlugin {
           new ScalariformEnabler().execute(ctx)
         case SbtHeaderEnablerChoice =>
           new SbtHeaderEnabler().execute(ctx)
+        case SwaggerEnablerChoice =>
+          new SwaggerEnabler().execute(ctx)
       }
 
       enablerResult match {
