@@ -57,18 +57,21 @@ object Parsers {
   case object AnormEnablerChoice extends EnablerChoice
   case object BuildInfoEnablerChoice extends EnablerChoice
   case object ConductrEnablerChoice extends EnablerChoice
+  case object CircuitBreakerEnablerChoice extends EnablerChoice
   case object ScalariformEnablerChoice extends EnablerChoice
   case object LoggerEnablerChoice extends EnablerChoice
   case object JsonEnablerChoice extends EnablerChoice
   case object FpEnablerChoice extends EnablerChoice
   case object SbtHeaderEnablerChoice extends EnablerChoice
   case object SwaggerEnablerChoice extends EnablerChoice
+  case object SparkEnablerChoice extends EnablerChoice
   case object AllEnablerChoice extends EnablerChoice
 
   val enablerParser: Parser[EnablerChoice] = {
     val anorm: Parser[EnablerChoice] = "anorm" ^^^ AnormEnablerChoice
     val akka: Parser[EnablerChoice] = "akka" ^^^ AkkaEnablerChoice
     val buildinfo: Parser[EnablerChoice] = "buildinfo" ^^^ BuildInfoEnablerChoice
+    val circuitBreaker: Parser[EnablerChoice] = ("circuitbreaker" | "cb") ^^^ CircuitBreakerEnablerChoice
     val conductr: Parser[EnablerChoice] = "conductr" ^^^ ConductrEnablerChoice
     val scalariform: Parser[EnablerChoice] = "scalariform" ^^^ ScalariformEnablerChoice
     val logback: Parser[EnablerChoice] = ("logback" | "logger" | "log") ^^^ LoggerEnablerChoice
@@ -76,9 +79,10 @@ object Parsers {
     val fp: Parser[EnablerChoice] = ("fp" | "scalaz") ^^^ FpEnablerChoice
     val sbtHeader: Parser[EnablerChoice] = ("header" | "sbt-header" | "sbtHeader") ^^^ SbtHeaderEnablerChoice
     val swagger: Parser[EnablerChoice] = "swagger" ^^^ SwaggerEnablerChoice
+    val spark: Parser[EnablerChoice] = "spark" ^^^ SparkEnablerChoice
     val all: Parser[EnablerChoice] = "all" ^^^ AllEnablerChoice
 
-    DefaultParsers.token(Space ~> (all | akka | anorm | buildinfo | conductr | scalariform | sbtHeader | logback | json | fp | swagger))
+    DefaultParsers.token(Space ~> (all | akka | anorm | buildinfo | circuitBreaker | conductr | scalariform | sbtHeader | logback | json | fp | spark | swagger))
   }
 
   val scaffoldParser: Parser[ScaffoldChoice] = {

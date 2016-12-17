@@ -24,6 +24,7 @@ import scalaz.Disjunction
 
 final case class SwaggerEnablerResult(settings: Path, plugin: Path) extends EnablerResult
 
+// see: http://swagger.io/playing-with-swagger-using-swagger-and-swagger-ui-with-the-play-framework/
 // see: https://github.com/swagger-api/swagger-play/tree/master/play-2.5/swagger-play2
 class SwaggerEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {

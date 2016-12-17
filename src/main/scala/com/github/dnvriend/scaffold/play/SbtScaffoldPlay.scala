@@ -21,12 +21,14 @@ import com.github.dnvriend.scaffold.play.enabler.akka.AkkaEnabler
 import com.github.dnvriend.scaffold.play.enabler.all.EveryFeatureEnabler
 import com.github.dnvriend.scaffold.play.enabler.anorm.AnormEnabler
 import com.github.dnvriend.scaffold.play.enabler.buildinfo.BuildInfoEnabler
+import com.github.dnvriend.scaffold.play.enabler.circuitbreaker.CircuitBreakerEnabler
 import com.github.dnvriend.scaffold.play.enabler.conductr.ConductrEnabler
 import com.github.dnvriend.scaffold.play.enabler.fp.FpEnabler
 import com.github.dnvriend.scaffold.play.enabler.json.JsonEnabler
 import com.github.dnvriend.scaffold.play.enabler.logging.LoggingEnabler
 import com.github.dnvriend.scaffold.play.enabler.sbtheader.SbtHeaderEnabler
 import com.github.dnvriend.scaffold.play.enabler.scalariform.ScalariformEnabler
+import com.github.dnvriend.scaffold.play.enabler.spark.SparkEnabler
 import com.github.dnvriend.scaffold.play.enabler.swagger.SwaggerEnabler
 import com.github.dnvriend.scaffold.play.parsers.Parsers
 import com.github.dnvriend.scaffold.play.parsers.Parsers._
@@ -101,6 +103,8 @@ object SbtScaffoldPlay extends AutoPlugin {
           new AkkaEnabler().execute(ctx)
         case BuildInfoEnablerChoice =>
           new BuildInfoEnabler().execute(ctx)
+        case CircuitBreakerEnablerChoice =>
+          new CircuitBreakerEnabler().execute(ctx)
         case ConductrEnablerChoice =>
           new ConductrEnabler().execute(ctx)
         case FpEnablerChoice =>
@@ -115,6 +119,8 @@ object SbtScaffoldPlay extends AutoPlugin {
           new SbtHeaderEnabler().execute(ctx)
         case SwaggerEnablerChoice =>
           new SwaggerEnabler().execute(ctx)
+        case SparkEnablerChoice =>
+          new SparkEnabler().execute(ctx)
       }
 
       enablerResult match {
