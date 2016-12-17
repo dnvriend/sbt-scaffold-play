@@ -18,133 +18,169 @@ package com.github.dnvriend.scaffold.play.scaffolds.crudcontroller
 
 import ammonite.ops._
 import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext, ScaffoldResult }
-import com.github.dnvriend.scaffold.play.userinput.{ ComponentNameUserInput, EntityUserInput }
-import com.github.dnvriend.scaffold.play.util.ScaffoldDisjunction.DisjunctionOfThrowableToDisjunctionOfString
+import com.github.dnvriend.scaffold.play.userinput.{ ComponentNameUserInput, EntityUserInput, ResourceNameUserInput }
 import com.github.dnvriend.scaffold.play.util.FileUtils
 import com.github.dnvriend.scaffold.play.util.Capitalize.ops._
+
 import scalaz._
 
-final case class CrudControllerScaffoldResult(componentName: String, entity: EntityUserInput) extends ScaffoldResult
+final case class CrudControllerScaffoldResult(componentName: String, entity: EntityUserInput, componentPackage: String, createdEntity: Path, createdRepository: Path, createdController: Path, createdDisjunctionOps: Path, createdValidationOps: Path, createdValidator: Path, createdEvolution: Path, alteredRoutes: Path) extends ScaffoldResult
 
 class CrudControllerScaffold extends Scaffold {
   override def execute(ctx: ScaffoldContext): Disjunction[String, ScaffoldResult] = for {
     componentName <- ComponentNameUserInput.askUser("crud-controller")
-    entity <- EntityUserInput.askUser("DefaultEntity")
-  } yield CrudControllerScaffoldResult(componentName, entity)
+    resourceName <- ResourceNameUserInput.askUser("crud-controller", componentName)
+    entityUserInput <- EntityUserInput.askUser("DefaultEntity")
+    componentPackage = s"${ctx.organization}.component.$componentName"
+    createdEntity <- createEntity(ctx.srcDir, componentPackage, entityUserInput)
+    createdRepository <- createRepository(ctx.srcDir, componentPackage, entityUserInput)
+    createdController <- createController(ctx.srcDir, componentPackage, entityUserInput)
+    createdDisjunctionOps <- createDisjunctionOps(ctx.srcDir, componentPackage, entityUserInput)
+    createdValidationOps <- createValidationOps(ctx.srcDir, componentPackage, entityUserInput)
+    createdValidator <- createValidator(ctx.srcDir, componentPackage, entityUserInput)
+    maxEvolution <- FileUtils.maxEvolution(ctx.resourceDir)
+    createdEvolution <- createEvolution(ctx.resourceDir / "evolutions" / "default", maxEvolution, Template.evolution(entityUserInput))
+    alteredRoutes <- addRoutes(ctx.resourceDir, resourceName, componentPackage, entityUserInput)
+  } yield CrudControllerScaffoldResult(componentName, entityUserInput, componentPackage, createdEntity, createdRepository, createdController, createdDisjunctionOps, createdValidationOps, createdValidator, createdEvolution, alteredRoutes)
 
-  def addRoute(resourceDir: Path, packageName: String, className: String, resourceName: String): Disjunction[String, Path] =
-    FileUtils.appendToRoutes(resourceDir, s"GET $resourceName $packageName.$className.action")
+  def createEntity(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
+    FileUtils.createClass(srcDir, componentPackage, entity.className, Template.entity(componentPackage, entity))
 
-  //  def generateContent(packageName: String, className: String): Disjunction[String, String] =
-  //    Disjunction.fromTryCatchNonFatal(Template.render(packageName, className))
+  def createRepository(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
+    FileUtils.createClass(srcDir, s"$componentPackage.repository", s"${entity.className}Repository", Template.repository(componentPackage, entity))
 
-  def create(srcDir: Path, packageName: String, className: String, content: String): Disjunction[String, Path] =
-    FileUtils.createClass(srcDir, packageName, className, content)
+  def createController(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
+    FileUtils.createClass(srcDir, s"$componentPackage.controller", s"${entity.className}Controller", Template.controller(componentPackage, entity))
+
+  def createDisjunctionOps(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
+    FileUtils.createClass(srcDir, s"$componentPackage.util", "DisjunctionOps", Template.disjunctionOps(componentPackage))
+
+  def createValidationOps(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
+    FileUtils.createClass(srcDir, s"$componentPackage.util", "ValidationOps", Template.validationOps(componentPackage))
+
+  def createValidator(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
+    FileUtils.createClass(srcDir, s"$componentPackage.util", "Validator", Template.validator(componentPackage))
+
+  def createEvolution(defaultEvolutionDir: Path, maxEvolution: Int, content: String): Disjunction[String, Path] =
+    FileUtils.writeFile(defaultEvolutionDir / s"${maxEvolution + 1}.sql", content)
+
+  def addRoutes(resourceDir: Path, resourceName: String, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
+    FileUtils.appendToRoutes(resourceDir, Template.routes(componentPackage, resourceName, entity))
 }
 
 object Template {
-  def entity(packageName: String, entityName: String, entityType: String): String =
+  def entity(componentPackage: String, entity: EntityUserInput): String =
     s"""
-    |package $packageName
+    |package $componentPackage
     |
     |import play.api.libs.json.{ Format, Json }
     |import anorm.{ Macro, RowParser }
     |
-    |object Person {
-    |  implicit val format: Format[Person] = Json.format[Person]
-    |  val namedParser: RowParser[Person] = Macro.namedParser[Person]
+    |object ${entity.className} {
+    |  implicit val format: Format[${entity.className}] = Json.format[${entity.className}]
+    |  val namedParser: RowParser[${entity.className}] = Macro.namedParser[${entity.className}]
     |}
     |
-    |final case class Person(name: String, age: Int, id: Option[Long] = None)
+    |final case class ${entity.className}(${entity.renderFields}, id: Option[Long] = None)
   """.stripMargin
 
-  def repository(packageName: String, className: String, entityName: String, entityType: String): String =
-    s"""package $packageName
+  def repository(componentPackage: String, entity: EntityUserInput): String =
+    s"""package $componentPackage.repository
        |
        |import javax.inject.Inject
        |
        |import anorm._
-       |import $packageName.$entityType
+       |import $componentPackage.${entity.className}
        |import play.api.db.Database
        |
-       |class ${entityName}Repository @Inject() (db: Database) {
-       |  def getAll(limit: Int, offset: Int): List[$entityType] = db.withConnection { implicit conn =>
-       |    SQL"SELECT * FROM PERSON LIMIT $$limit OFFSET $$offset".as(Person.namedParser.*)
+       |class ${entity.className}Repository @Inject() (db: Database) {
+       |  def getAll(limit: Int, offset: Int): List[${entity.className}] = db.withConnection { implicit conn =>
+       |    SQL"${entity.renderGetAllSql}".as(${entity.className}.namedParser.*)
        |  }
        |
-       |  def getById(id: Long): Option[$entityType] = db.withConnection { implicit conn =>
-       |    SQL"SELECT * FROM PERSON WHERE id = $$id".as(Person.namedParser.singleOpt)
+       |  def getById(id: Long): Option[${entity.className}] = db.withConnection { implicit conn =>
+       |    SQL"${entity.renderGetByIdSql}".as(${entity.className}.namedParser.singleOpt)
        |  }
        |
-       |  def save(name: String, age: Int): Option[Long] = db.withConnection { implicit conn =>
-       |    SQL"INSERT INTO PERSON (name, age) VALUES ($$name, $$age)".executeInsert()
+       |  def save(${entity.renderFields}): Option[Long] = db.withConnection { implicit conn =>
+       |    SQL"${entity.renderSaveSql}".executeInsert()
        |  }
        |
-       |  def updateById(id: Long, name: String, age: Int): Int = db.withConnection { implicit conn =>
-       |    SQL"UPDATE PERSON SET name=$$name, age=$$age WHERE id=$$id".executeUpdate
+       |  def updateById(id: Long, ${entity.renderFields}): Int = db.withConnection { implicit conn =>
+       |    SQL"${entity.renderUpdateByIdSql}".executeUpdate
        |  }
        |
        |  def deleteById(id: Long): Int = db.withConnection { implicit conn =>
-       |    SQL"DELETE PERSON WHERE id = $$id".executeUpdate()
+       |    SQL"${entity.renderDeleteByIdSql}".executeUpdate()
        |  }
        |}
   """.stripMargin
 
-  def controller(packageName: String, className: String, entityName: String, entityType: String): String =
-    s"""package $packageName
+  def controller(componentPackage: String, entity: EntityUserInput): String = {
+    val controllerType = s"${entity.className}Controller"
+    val repo = s"${entity.className.uncapitalize}Repository"
+    val repoType = s"${entity.className}Repository"
+    val entityType: String = entity.className
+    val entityName: String = entity.className.uncapitalize
+
+    s"""package $componentPackage.controller
        |
        |import javax.inject.Inject
        |
-       |import com.github.dnvriend.component.personregistry.Person
-       |import com.github.dnvriend.component.personregistry.repository.PersonRepository
-       |import com.github.dnvriend.component.personregistry.util.DisjunctionOps._
-       |import com.github.dnvriend.component.personregistry.util.ValidationOps._
-       |import com.github.dnvriend.component.personregistry.util.Validator
+       |import $componentPackage.$entityType
+       |import $componentPackage.repository.$repoType
+       |import $componentPackage.util.DisjunctionOps._
+       |import $componentPackage.util.ValidationOps._
+       |import $componentPackage.util.Validator
        |import play.api.mvc._
        |
        |import scalaz._
        |import Scalaz._
        |
-       |class ${entityType}Controller @Inject() (${entityName}Repository: ${entityType}Repository) extends Controller {
+       |class $controllerType @Inject() ($repo: $repoType) extends Controller {
        |  def getAll(limit: Int, offset: Int): Action[AnyContent] = Action(for {
        |    (limit, offset) <- (Validator.intValidator("limit", limit) tuple Validator.intValidator("offset", offset)).toDisjunction
-       |    xs <- tryCatch(personRepository.getAll(limit, offset))
+       |    xs <- tryCatch($repo.getAll(limit, offset))
        |  } yield xs)
        |
        |  def getById(id: Long): Action[AnyContent] = Action(for {
        |    id <- Validator.idValidator("id", id).toDisjunction
-       |    $entityName <- tryCatch(${entityName}Repository.getById(id))
+       |    $entityName <- tryCatch($repo.getById(id))
        |  } yield $entityName)
        |
        |  def save(): Action[AnyContent] = Action(request => for {
-       |    $entityName <- request.toValidationNel[$entityName].toDisjunction
-       |    id <- tryCatch(${entityName}Repository.save(person.name, person.age))
-       |  } yield person.copy(id = id))
+       |    $entityName <- request.toValidationNel[$entityType].toDisjunction
+       |    id <- tryCatch($repo.save(${entity.renderEntityNameField}))
+       |  } yield $entityName.copy(id = id))
        |
        |  def updateById(id: Long): Action[AnyContent] = Action(request => for {
        |    id <- Validator.idValidator("id", id).toDisjunction
-       |    $entityName <- request.toValidationNel[Person].toDisjunction
-       |    _ <- tryCatch(${entityName}Repository.updateById(id, person.name, person.age))
+       |    $entityName <- request.toValidationNel[$entityType].toDisjunction
+       |    _ <- tryCatch($repo.updateById(id, ${entity.renderEntityNameField}))
        |  } yield $entityName)
        |
        |  def deleteById(id: Long): Action[AnyContent] = Action(for {
        |    id <- Validator.idValidator("id", id).toDisjunction
-       |    _ <- tryCatch(${entityName}Repository.deleteById(id))
+       |    _ <- tryCatch($repo.deleteById(id))
        |  } yield ())
        |}
   """.stripMargin
+  }
 
-  def disjunctionOps(packageName: String): String =
+  def disjunctionOps(componentPackage: String): String =
     s"""
-    |package $packageName
+    |package $componentPackage.util
     |
     |import play.api.libs.json.{ Format, Json }
     |import play.api.mvc.{ Result, Results }
     |
     |import scala.language.implicitConversions
-    |import scalaz.Disjunction
+    |import scalaz._
     |
     |object DisjunctionOps extends Results {
+    |  def tryCatch[A](block: => A): Disjunction[String, A] =
+    |    Disjunction.fromTryCatchNonFatal(block).leftMap(_.toString)
+    |
     |  implicit def ToActionUnit(maybe: Disjunction[String, Unit]): Result =
     |    maybe.map(value => NoContent)
     |      .leftMap(messages => BadRequest(messages)) match {
@@ -176,9 +212,9 @@ object Template {
     |}
   """.stripMargin
 
-  def validationOps(packageName: String): String =
+  def validationOps(componentPackage: String): String =
     s"""
-       |package $packageName
+       |package $componentPackage.util
        |
        |import play.api.data.validation.ValidationError
        |import play.api.libs.json.{ Format, JsPath, JsResult }
@@ -225,9 +261,9 @@ object Template {
        |}
      """.stripMargin
 
-  def validator(packageName: String): String =
+  def validator(componentPackage: String): String =
     s"""
-       |package $packageName
+       |package $componentPackage.util
        |
        |import scalaz._
        |import Scalaz._
@@ -244,18 +280,25 @@ object Template {
        |}
      """.stripMargin
 
-  def evolution(entityName: String): String =
-    """
+  def evolution(entity: EntityUserInput): String =
+    s"""
     |# --- !Ups
     |
-    |CREATE TABLE person (
-    |    id SERIAL,
-    |    name VARCHAR(255) NOT NULL,
-    |    age INT NOT NULL
-    |);
+    |${entity.renderCreateTable}
     |
     |# --- !Downs
     |
-    |DROP TABLE person;
+    |${entity.renderDropTable}
   """.stripMargin
+
+  def routes(componentPackage: String, resource: String, entity: EntityUserInput): String = {
+    val controller: String = s"$componentPackage.controller.${entity.className}Controller"
+    s"""
+      |GET           /api/$resource            $controller.getAll(limit: Int ?= 10, offset: Int ?= 0)
+      |GET           /api/$resource/:id        $controller.getById(id: Long)
+      |POST          /api/$resource            $controller.save()
+      |PUT           /api/$resource/:id        $controller.updateById(id: Long)
+      |DELETE        /api/$resource/:id        $controller.deleteById(id: Long)
+    """.stripMargin
+  }
 }

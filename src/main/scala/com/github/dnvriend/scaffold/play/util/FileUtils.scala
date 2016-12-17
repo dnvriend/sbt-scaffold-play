@@ -62,4 +62,11 @@ object FileUtils {
 
   def createDirectory(path: Path): Disjunction[String, Path] =
     Disjunction.fromTryCatchNonFatal(makeDir(path))
+
+  def maxEvolution(resourceDir: Path): Disjunction[String, Int] =
+    Disjunction.fromTryCatchNonFatal {
+      (ls ! resourceDir / "evolutions" / "default")
+        .filter(_.isFile)
+        .map(_ => 1).sum
+    }
 }

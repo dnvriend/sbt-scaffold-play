@@ -31,6 +31,7 @@ import com.github.dnvriend.scaffold.play.parsers.Parsers
 import com.github.dnvriend.scaffold.play.parsers.Parsers._
 import com.github.dnvriend.scaffold.play.scaffolds._
 import com.github.dnvriend.scaffold.play.scaffolds.controller.ControllerScaffold
+import com.github.dnvriend.scaffold.play.scaffolds.crudcontroller.CrudControllerScaffold
 import com.github.dnvriend.scaffold.play.scaffolds.dto.DtoScaffold
 import com.github.dnvriend.scaffold.play.scaffolds.pingcontroller.PingControllerScaffold
 import com.github.dnvriend.scaffold.play.scaffolds.wsclient.WsClientScaffold
@@ -138,6 +139,8 @@ object SbtScaffoldPlay extends AutoPlugin {
       val scaffoldResult = choice match {
         case ControllerChoice =>
           new ControllerScaffold().execute(ctx)
+        case CrudControllerChoice =>
+          new CrudControllerScaffold().execute(ctx)
         case PingControllerChoice =>
           new PingControllerScaffold().execute(ctx)
         case WsClientChoice =>

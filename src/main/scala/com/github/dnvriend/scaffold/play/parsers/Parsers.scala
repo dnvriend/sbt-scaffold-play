@@ -25,18 +25,19 @@ object Parsers {
   sealed trait Choice
   sealed trait FieldType extends Choice {
     def name: String
+    def sql: String
   }
-  case object BooleanType extends FieldType { override def name: String = "Bool" }
-  case object ByteType extends FieldType { override def name: String = "Byte" }
-  case object CharType extends FieldType { override def name: String = "Char" }
-  case object ShortType extends FieldType { override def name: String = "Short" }
-  case object IntType extends FieldType { override def name: String = "Int" }
-  case object LongType extends FieldType { override def name: String = "Long" }
-  case object FloatType extends FieldType { override def name: String = "Float" }
-  case object DoubleType extends FieldType { override def name: String = "Double" }
-  case object StringType extends FieldType { override def name: String = "String" }
-  case object StringOptionType extends FieldType { override def name: String = "Option[String]" }
-  case object LongOptionType extends FieldType { override def name: String = "Option[Long]" }
+  case object BooleanType extends FieldType { val name: String = "Bool"; val sql = "BOOLEAN" }
+  case object ByteType extends FieldType { val name: String = "Byte"; val sql = "BIGINT" }
+  case object CharType extends FieldType { val name: String = "Char"; val sql: String = "VARCHAR(255)" }
+  case object ShortType extends FieldType { val name: String = "Short"; val sql: String = "BIGINT" }
+  case object IntType extends FieldType { val name: String = "Int"; val sql: String = "BIGINT" }
+  case object LongType extends FieldType { val name: String = "Long"; val sql: String = "BIGINT" }
+  case object FloatType extends FieldType { val name: String = "Float"; val sql: String = "REAL" }
+  case object DoubleType extends FieldType { val name: String = "Double"; val sql: String = "REAL" }
+  case object StringType extends FieldType { val name: String = "String"; val sql: String = "VARCHAR(255)" }
+  case object StringOptionType extends FieldType { val name: String = "Option[String]"; val sql: String = "VARCHAR(255)" }
+  case object LongOptionType extends FieldType { val name: String = "Option[Long]"; val sql: String = "BIGINT" }
 
   case object Yes extends Choice
   case object No extends Choice
@@ -46,6 +47,7 @@ object Parsers {
   // scaffolds
   trait ScaffoldChoice extends Choice
   case object ControllerChoice extends ScaffoldChoice
+  case object CrudControllerChoice extends ScaffoldChoice
   case object PingControllerChoice extends ScaffoldChoice
   case object WsClientChoice extends ScaffoldChoice
   case object DtoChoice extends ScaffoldChoice
@@ -79,11 +81,12 @@ object Parsers {
 
   val scaffoldParser: Parser[ScaffoldChoice] = {
     val controller: Parser[ScaffoldChoice] = "controller" ^^^ ControllerChoice
+    val crudController: Parser[ScaffoldChoice] = ("crud" | "crud-controller") ^^^ CrudControllerChoice
     val pingcontroller: Parser[ScaffoldChoice] = "pingcontroller" ^^^ PingControllerChoice
     val wsclient: Parser[ScaffoldChoice] = "wsclient" ^^^ WsClientChoice
     val dto: Parser[ScaffoldChoice] = "dto" ^^^ DtoChoice
 
-    DefaultParsers.token(Space ~> (controller | pingcontroller | wsclient | dto))
+    DefaultParsers.token(Space ~> (controller | crudController | pingcontroller | wsclient | dto))
   }
 
   def packageParser(defaults: String*): Parser[String] = StringBasic.examples(defaults: _*)

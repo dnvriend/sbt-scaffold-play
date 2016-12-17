@@ -29,7 +29,6 @@ class AnormEnabler extends Enabler {
     settings <- createSettings(ctx.baseDir, Template.settings())
     config <- createConfig(ctx.resourceDir, Template.config())
     _ <- FileUtils.createDirectory(ctx.resourceDir / "evolutions" / "default")
-    _ <- createEvolution(ctx.resourceDir / "evolutions" / "default", Template.evolution())
     _ <- addConfig(ctx.resourceDir)
   } yield AnormEnablerResult(settings, config)
 
@@ -38,9 +37,6 @@ class AnormEnabler extends Enabler {
 
   def createConfig(resourceDir: Path, content: String): Disjunction[String, Path] =
     FileUtils.writeFile(resourceDir / "anorm.conf", content)
-
-  def createEvolution(defaultEvolutionDir: Path, content: String): Disjunction[String, Path] =
-    FileUtils.writeFile(defaultEvolutionDir / "1.sql", content)
 
   def addConfig(resourceDir: Path): Disjunction[String, Path] =
     FileUtils.appendToApplication(resourceDir, """include "anorm"""")
@@ -56,8 +52,7 @@ object Template {
       |libraryDependencies += "com.typesafe.play" %% "anorm" % "2.5.2"
       |// database driver
       |libraryDependencies += "com.h2database" % "h2" % "1.4.193"
-      |//libraryDependencies += "org.postgresql" % "postgresql" % "9.4.1212"
-      |//libraryDependencies += "mysql" % "mysql-connector-java" % "6.0.5"
+      |libraryDependencies += "org.postgresql" % "postgresql" % "9.4.1212"
     """.stripMargin
 
   def config(): String =
@@ -97,20 +92,5 @@ object Template {
     |play.db.prototype.hikaricp.transactionIsolation = null
     |play.db.prototype.hikaricp.validationTimeout = 5 seconds
     |play.db.prototype.hikaricp.leakDetectionThreshold = null
-  """.stripMargin
-
-  def evolution(): String =
-    """
-    |# --- !Ups
-    |
-    |CREATE TABLE person (
-    |    id SERIAL,
-    |    name VARCHAR(255) NOT NULL,
-    |    age INT NOT NULL
-    |);
-    |
-    |# --- !Downs
-    |
-    |DROP TABLE person;
   """.stripMargin
 }
