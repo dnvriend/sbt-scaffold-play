@@ -34,7 +34,7 @@ class CrudControllerScaffold extends Scaffold {
     componentPackage = s"${ctx.organization}.component.$componentName"
     createdEntity <- createEntity(ctx.srcDir, componentPackage, entityUserInput)
     createdRepository <- createRepository(ctx.srcDir, componentPackage, entityUserInput)
-    createdController <- createController(ctx.srcDir, componentPackage, entityUserInput)
+    createdController <- createController(ctx.srcDir, componentPackage, entityUserInput, resourceName)
     createdDisjunctionOps <- createDisjunctionOps(ctx.srcDir, componentPackage, entityUserInput)
     createdValidationOps <- createValidationOps(ctx.srcDir, componentPackage, entityUserInput)
     createdValidator <- createValidator(ctx.srcDir, componentPackage, entityUserInput)
@@ -49,8 +49,8 @@ class CrudControllerScaffold extends Scaffold {
   def createRepository(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
     FileUtils.createClass(srcDir, s"$componentPackage.repository", s"${entity.className}Repository", Template.repository(componentPackage, entity))
 
-  def createController(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
-    FileUtils.createClass(srcDir, s"$componentPackage.controller", s"${entity.className}Controller", Template.controller(componentPackage, entity))
+  def createController(srcDir: Path, componentPackage: String, entity: EntityUserInput, resourceName: String): Disjunction[String, Path] =
+    FileUtils.createClass(srcDir, s"$componentPackage.controller", s"${entity.className}Controller", Template.controller(componentPackage, entity, resourceName))
 
   def createDisjunctionOps(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
     FileUtils.createClass(srcDir, s"$componentPackage.util", "DisjunctionOps", Template.disjunctionOps(componentPackage))
@@ -116,7 +116,7 @@ object Template {
        |}
   """.stripMargin
 
-  def controller(componentPackage: String, entity: EntityUserInput): String = {
+  def controller(componentPackage: String, entity: EntityUserInput, resourceName: String): String = {
     val controllerType = s"${entity.className}Controller"
     val repo = s"${entity.className.uncapitalize}Repository"
     val repoType = s"${entity.className}Repository"
@@ -132,34 +132,50 @@ object Template {
        |import $componentPackage.util.DisjunctionOps._
        |import $componentPackage.util.ValidationOps._
        |import $componentPackage.util.Validator
+       |import io.swagger.annotations._
        |import play.api.mvc._
        |
        |import scalaz._
        |import Scalaz._
        |
+       |@Api(value = "/api/$resourceName")
        |class $controllerType @Inject() ($repo: $repoType) extends Controller {
-       |  def getAll(limit: Int, offset: Int): Action[AnyContent] = Action(for {
+       |
+       |  @ApiOperation(value = "Get all $entityName", response = classOf[$entityType], httpMethod = "GET")
+       |  @ApiResponses(Array(new ApiResponse(code = 200, message = "Return a list of $entityName")))
+       |  def getAll(@ApiParam(value = "Fetch number of items") limit: Int, @ApiParam(value = "Fetch from offset") offset: Int): Action[AnyContent] = Action(for {
        |    (limit, offset) <- (Validator.intValidator("limit", limit) tuple Validator.intValidator("offset", offset)).toDisjunction
        |    xs <- tryCatch($repo.getAll(limit, offset))
        |  } yield xs)
        |
-       |  def getById(id: Long): Action[AnyContent] = Action(for {
+       |  @ApiOperation(value = "Get $entityName by id", response = classOf[$entityType], httpMethod = "GET")
+       |  @ApiResponses(Array(
+       |    new ApiResponse(code = 200, message = "Returns $entityName when found"),
+       |    new ApiResponse(code = 404, message = "Returns 404 when not found")
+       |  ))
+       |  def getById(@ApiParam(value = "id of $entityName") id: Long): Action[AnyContent] = Action(for {
        |    id <- Validator.idValidator("id", id).toDisjunction
        |    $entityName <- tryCatch($repo.getById(id))
        |  } yield $entityName)
        |
+       |  @ApiOperation(value = "Save $entityName", response = classOf[$entityType], httpMethod = "POST")
+       |  @ApiResponses(Array(new ApiResponse(code = 200, message = "Returns the stored $entityName with id")))
        |  def save(): Action[AnyContent] = Action(request => for {
        |    $entityName <- request.toValidationNel[$entityType].toDisjunction
        |    id <- tryCatch($repo.save(${entity.renderEntityNameField}))
        |  } yield $entityName.copy(id = id))
        |
-       |  def updateById(id: Long): Action[AnyContent] = Action(request => for {
+       |  @ApiOperation(value = "Update $entityName by id", response = classOf[$entityType], httpMethod = "PUT")
+       |  @ApiResponses(Array(new ApiResponse(code = 200, message = "Returns the updated $entityName")))
+       |  def updateById(@ApiParam(value = "id of $entityName") id: Long): Action[AnyContent] = Action(request => for {
        |    id <- Validator.idValidator("id", id).toDisjunction
        |    $entityName <- request.toValidationNel[$entityType].toDisjunction
        |    _ <- tryCatch($repo.updateById(id, ${entity.renderEntityNameField}))
        |  } yield $entityName)
        |
-       |  def deleteById(id: Long): Action[AnyContent] = Action(for {
+       |  @ApiOperation(value = "Delete $entityName by id", httpMethod = "DELETE")
+       |  @ApiResponses(Array(new ApiResponse(code = 204, message = "Returns no content")))
+       |  def deleteById(@ApiParam(value = "id of $entityName") id: Long): Action[AnyContent] = Action(for {
        |    id <- Validator.idValidator("id", id).toDisjunction
        |    _ <- tryCatch($repo.deleteById(id))
        |  } yield ())

@@ -71,6 +71,7 @@ object Template {
 
   def route(): String =
     """
-    |GET     /swagger.json           controllers.ApiHelpController.getResources
+    |GET           /api-docs              controllers.ApiHelpController.getResources
+    |GET           /api-docs/*path        controllers.ApiHelpController.getResource(path: String)
   """.stripMargin
 }
