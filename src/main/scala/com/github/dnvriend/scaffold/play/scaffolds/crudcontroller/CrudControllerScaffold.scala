@@ -95,23 +95,23 @@ object Template {
        |
        |class ${entity.className}Repository @Inject() (db: Database) {
        |  def getAll(limit: Int, offset: Int): List[${entity.className}] = db.withConnection { implicit conn =>
-       |    SQL"${entity.renderGetAllSql}".as(${entity.className}.namedParser.*)
+       |    SQL\"\"\"${entity.renderGetAllSql}\"\"\".as(${entity.className}.namedParser.*)
        |  }
        |
        |  def getById(id: Long): Option[${entity.className}] = db.withConnection { implicit conn =>
-       |    SQL"${entity.renderGetByIdSql}".as(${entity.className}.namedParser.singleOpt)
+       |    SQL\"\"\"${entity.renderGetByIdSql}\"\"\".as(${entity.className}.namedParser.singleOpt)
        |  }
        |
        |  def save(${entity.renderFields}): Option[Long] = db.withConnection { implicit conn =>
-       |    SQL"${entity.renderSaveSql}".executeInsert()
+       |    SQL\"\"\"${entity.renderSaveSql}\"\"\".executeInsert()
        |  }
        |
        |  def updateById(id: Long, ${entity.renderFields}): Int = db.withConnection { implicit conn =>
-       |    SQL"${entity.renderUpdateByIdSql}".executeUpdate
+       |    SQL\"\"\"${entity.renderUpdateByIdSql}\"\"\".executeUpdate
        |  }
        |
        |  def deleteById(id: Long): Int = db.withConnection { implicit conn =>
-       |    SQL"${entity.renderDeleteByIdSql}".executeUpdate()
+       |    SQL\"\"\"${entity.renderDeleteByIdSql}\"\"\".executeUpdate()
        |  }
        |}
   """.stripMargin

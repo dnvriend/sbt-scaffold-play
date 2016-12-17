@@ -69,33 +69,33 @@ object EntityUserInput {
   }
 
   def renderGetAllSql(className: String): String =
-    s"SELECT * FROM ${className.toUpperCase} LIMIT $$limit OFFSET $$offset"
+    s"""SELECT * FROM "${className.toUpperCase}" LIMIT $$limit OFFSET $$offset"""
 
   def renderGetById(className: String): String =
-    s"SELECT * FROM ${className.toUpperCase} WHERE id = $$id"
+    s"""SELECT * FROM "${className.toUpperCase}" WHERE id=$$id"""
 
   def renderSaveSql(className: String, fields: Fields): String =
-    s"INSERT INTO ${className.toUpperCase} (${renderFieldNames(fields)}) VALUES (${renderFieldNamesInterpolated(fields)})"
+    s"""INSERT INTO "${className.toUpperCase}" (${renderFieldNamesEscaped(fields)}) VALUES (${renderFieldNamesInterpolated(fields)})"""
 
   def renderUpdateByIdSql(className: String, fields: Fields): String =
-    s"UPDATE ${className.toUpperCase} SET ${renderFieldsIsInterpolated(fields)} WHERE id=$$id"
+    s"""UPDATE "${className.toUpperCase}" SET ${renderFieldsIsInterpolated(fields)} WHERE "id"=$$id"""
 
   def renderDeleteByIdSql(className: String): String =
-    s"DELETE ${className.toUpperCase} WHERE id = $$id"
+    s"""DELETE "${className.toUpperCase}" WHERE "id"=$$id"""
 
   def renderCreateTable(className: String, fields: Fields): String =
-    s"CREATE TABLE ${className.toUpperCase} (id SERIAL, ${renderSqlFields(fields)});"
+    s"""CREATE TABLE "${className.toUpperCase}" ("id" SERIAL, ${renderSqlFields(fields)});"""
 
   def renderDropTable(className: String): String =
-    s"DROP TABLE ${className.toUpperCase};"
+    s"""DROP TABLE "${className.toUpperCase}";"""
 
   def renderFieldsIsInterpolated(fields: Fields): String = {
-    def renderField(field: Field): String = s"${field._1}=$$${field._1}"
+    def renderField(field: Field): String = s""""${field._1}"=$$${field._1}"""
     fields.map(renderField).mkString(", ")
   }
 
   def renderSqlFields(fields: Fields): String = {
-    def renderField(field: Field): String = s"${field._1.toLowerCase} ${field._2.sql} NOT NULL"
+    def renderField(field: Field): String = s""""${field._1.toLowerCase}" ${field._2.sql} NOT NULL"""
     fields.map(renderField).mkString(", ")
   }
 
@@ -105,6 +105,11 @@ object EntityUserInput {
    */
   def renderFieldNamesInterpolated(fields: Fields): String = {
     def renderField(field: Field): String = s"$$${field._1}"
+    fields.map(renderField).mkString(", ")
+  }
+
+  def renderFieldNamesEscaped(fields: Fields): String = {
+    def renderField(field: Field): String = s""""${field._1}""""
     fields.map(renderField).mkString(", ")
   }
 
