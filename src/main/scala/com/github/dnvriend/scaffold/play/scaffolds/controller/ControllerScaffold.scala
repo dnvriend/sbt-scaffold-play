@@ -19,7 +19,7 @@ package com.github.dnvriend.scaffold.play.scaffolds.controller
 import ammonite.ops._
 import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext, ScaffoldResult }
 import com.github.dnvriend.scaffold.play.userinput.ControllerUserInput
-import com.github.dnvriend.scaffold.play.util.DisjunctionOps.DisjunctionOfThrowableToDisjunctionOfString
+import com.github.dnvriend.scaffold.play.util.ScaffoldDisjunction.DisjunctionOfThrowableToDisjunctionOfString
 import com.github.dnvriend.scaffold.play.util.FileUtils
 
 import scalaz._

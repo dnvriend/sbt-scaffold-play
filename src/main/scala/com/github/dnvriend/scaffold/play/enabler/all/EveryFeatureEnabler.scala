@@ -24,7 +24,7 @@ import com.github.dnvriend.scaffold.play.enabler.json.JsonEnabler
 import com.github.dnvriend.scaffold.play.enabler.logging.LoggingEnabler
 import com.github.dnvriend.scaffold.play.enabler.sbtheader.SbtHeaderEnabler
 import com.github.dnvriend.scaffold.play.enabler.scalariform.ScalariformEnabler
-import com.github.dnvriend.scaffold.play.enabler.{Enabler, EnablerContext, EnablerResult}
+import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
 
 import scalaz.Disjunction
 

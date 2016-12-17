@@ -16,21 +16,20 @@
 
 package com.github.dnvriend.scaffold.play.util
 
-import com.github.dnvriend.scaffold.play.util.ScaffoldParser._
-import sbt._
-import sbt.complete._
 import scalaz._
 import Scalaz._
+import sbt.complete.Parser
 
-object UserInput {
-  def parse[A](line: String, parser: Parser[A]): ValidationNel[String, A] =
-    parser.parse(line)
+object ScaffoldParser {
+  implicit class ParserImplicits[T](val that: Parser[T]) extends AnyVal {
+    def parse(input: String): ValidationNel[String, T] = Parser.parse(input, that).validationNel
+  }
 
-  def reader[A](parser: Parser[A]): FullReader =
-    new sbt.FullReader(None, parser)
-
-  def readLine[A](parser: Parser[A], prompt: String = "> "): Disjunction[String, A] = for {
-    line <- reader(parser).readLine(prompt).toRightDisjunction("Could not parse user input")
-    result <- parse(line, parser).disjunction.leftMap(_.toList.mkString(","))
-  } yield result
+  implicit class EitherImplicits[T](val that: Either[String, T]) extends AnyVal {
+    def cleanup(input: String): Option[String] =
+      Option(input.replaceAll("\\n", "").replaceAll("\\t", "").replace("^", "").trim).filter(_.nonEmpty)
+    def validationNel: ValidationNel[String, T] = that.validation.leftMap { str =>
+      str.split("\\n").toList.flatMap(cleanup).mkString(" ...").wrapNel
+    }
+  }
 }

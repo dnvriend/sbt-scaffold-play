@@ -12,7 +12,7 @@ libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.7"
 libraryDependencies += "com.h2database" % "h2" % "1.4.193"
 libraryDependencies += "com.lihaoyi" %% "ammonite-ops" % "0.8.1"
 libraryDependencies += "com.lihaoyi" %% "upickle" % "0.4.3"
-libraryDependencies += "org.scalamacros" %% "quasiquotes" % "2.0.0" % "provided"
+libraryDependencies += "com.github.mpilquist" %% "simulacrum" % "0.10.0"
 
 // testing
 libraryDependencies += "org.typelevel" %% "scalaz-scalatest" % "1.1.1" % Test

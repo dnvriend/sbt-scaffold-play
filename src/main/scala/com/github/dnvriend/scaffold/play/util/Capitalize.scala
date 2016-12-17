@@ -16,12 +16,16 @@
 
 package com.github.dnvriend.scaffold.play.util
 
-import scala.language.implicitConversions
-import scalaz.Disjunction
+import simulacrum._
 
-object DisjunctionOps {
-  implicit def DisjunctionOfThrowableToDisjunctionOfString[A](that: Disjunction[Throwable, A]): Disjunction[String, A] = that.leftString
-  implicit class DisjunctionImplicits[A](val that: Disjunction[Throwable, A]) extends AnyVal {
-    def leftString: Disjunction[String, A] = that.leftMap(_.toString)
+object Capitalize {
+  implicit val capitalizeString = new Capitalize[String] {
+    override def toClassName(that: String): String = that.capitalize
+    override def uncapitalize(that: String): String = that.take(1).toLowerCase + that.drop(1)
   }
+}
+
+@typeclass trait Capitalize[A] {
+  def toClassName(that: A): A
+  def uncapitalize(that: A): A
 }

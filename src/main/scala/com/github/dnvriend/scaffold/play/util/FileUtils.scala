@@ -19,13 +19,13 @@ package com.github.dnvriend.scaffold.play.util
 import ammonite.ops._
 
 import scalaz.Disjunction
-import com.github.dnvriend.scaffold.play.util.DisjunctionOps.DisjunctionOfThrowableToDisjunctionOfString
+import com.github.dnvriend.scaffold.play.util.ScaffoldDisjunction._
 
 object FileUtils {
   def dotToSlash(srcDir: Path, packageName: String, className: String): Disjunction[String, Path] =
     Disjunction.fromTryCatchNonFatal {
       val packageNameAsPath = RelPath(packageName.replace(".", "/"))
-      srcDir / packageNameAsPath / s"${className}.scala"
+      srcDir / packageNameAsPath / s"$className.scala"
     }
 
   def createClass(srcDir: Path, packageName: String, className: String, content: String): Disjunction[String, Path] = for {

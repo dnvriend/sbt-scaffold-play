@@ -109,16 +109,8 @@ object Template {
     |    age INT NOT NULL
     |);
     |
-    |CREATE TABLE kafka_offsets (
-    |  consumer_name VARCHAR(255) NOT NULL,
-    |  topic_offset BIGINT,
-    |  PRIMARY KEY (consumer_name)
-    |);
-    |
     |# --- !Downs
     |
     |DROP TABLE person;
-    |
-    |DROP TABLE kafka_offsets;
   """.stripMargin
 }

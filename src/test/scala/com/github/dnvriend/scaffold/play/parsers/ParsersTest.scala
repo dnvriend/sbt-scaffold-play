@@ -16,7 +16,7 @@
 
 package com.github.dnvriend.scaffold.play.parsers
 
-import com.github.dnvriend.scaffold.play.util.ParserOps._
+import com.github.dnvriend.scaffold.play.util.ScaffoldParser._
 import org.scalatest.{ FlatSpec, Matchers }
 import org.typelevel.scalatest.ValidationMatchers
 
