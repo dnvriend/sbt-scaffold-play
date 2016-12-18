@@ -89,6 +89,65 @@ Enabling all features will add the following structure to `play-seed`:
 │   ├── plugins.sbt
 ```
 
+### Swagger
+Swagger can be enabled by typing:
+
+```bash
+[play-seed] $ enable swagger
+[info] Enable complete
+```
+
+The following routes will be added:
+
+```bash
+GET           /api-docs              controllers.ApiHelpController.getResources
+GET           /api-docs/*path        controllers.ApiHelpController.getResource(path: String)
+```
+
+By default, the swagger api is available at http://localhost:9000/api-docs or `http :9000/api-docs` if you are using [httpie](https://httpie.org/).
+
+### CircuitBreaker
+CircuitBreaker can be added by typing:
+
+```bash
+[play-seed] $ enable circuitbreaker
+[info] Enable complete
+[success] Total time: 0 s, completed 18-dec-2016 14:27:22
+```
+
+This will create the configuration `/conf/circuit-breaker.conf`:
+
+```bash
+play.modules.enabled += "play.modules.cb.CircuitBreakerModule"
+```
+
+And it will add the `play.modules.cb.CircuitBreakerModule`:
+
+```scala
+package play.modules.cb
+
+import akka.actor.ActorSystem
+import akka.pattern.CircuitBreaker
+import com.google.inject.{ AbstractModule, Provides }
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
+
+class CircuitBreakerModule extends AbstractModule {
+  override def configure(): Unit = {
+    @Provides
+    def circuitBreakerProvider(system: ActorSystem)(implicit ec: ExecutionContext): CircuitBreaker = {
+      val maxFailures: Int = 3
+      val callTimeout: FiniteDuration = 1.seconds
+      val resetTimeout: FiniteDuration = 10.seconds
+      new CircuitBreaker(system.scheduler, maxFailures, callTimeout, resetTimeout)
+    }
+  }
+}
+```
+
+After enabling CircuitBreaker, you can inject a circuitBreaker in any resource like Controller, Repository etc.
+
 ## Scaffolding
 You can scaffold (quickly create basic working functionality which you then alter to fit your needs) using the __scaffold__
 command for example:

@@ -24,7 +24,7 @@ import scalaz.Disjunction
 
 final case class JsonEnablerResult(settings: Path) extends EnablerResult
 
-class JsonEnabler extends Enabler {
+object JsonEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
     settings <- createSettings(ctx.baseDir, Template.settings())
   } yield JsonEnablerResult(settings)

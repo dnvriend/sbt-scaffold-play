@@ -25,7 +25,7 @@ import scalaz.Disjunction
 
 final case class FpEnablerResult(settings: Path) extends EnablerResult
 
-class FpEnabler extends Enabler {
+object FpEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
     settings <- createSettings(ctx.baseDir, Template.settings())
   } yield FpEnablerResult(settings)

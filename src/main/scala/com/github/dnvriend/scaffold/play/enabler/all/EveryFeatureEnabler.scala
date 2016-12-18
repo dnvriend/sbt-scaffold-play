@@ -32,17 +32,17 @@ import scalaz.Disjunction
 
 final case class EveryFeatureEnablerResult(scalariform: EnablerResult, sbtHeader: EnablerResult, buildInfo: EnablerResult, fp: EnablerResult, json: EnablerResult, logging: EnablerResult, anorm: EnablerResult, akka: EnablerResult, swagger: EnablerResult, circuitBreaker: EnablerResult) extends EnablerResult
 
-class EveryFeatureEnabler extends Enabler {
+object EveryFeatureEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
-    scalariform <- new ScalariformEnabler().execute(ctx)
-    sbtHeader <- new SbtHeaderEnabler().execute(ctx)
-    buildInfo <- new BuildInfoEnabler().execute(ctx)
-    fp <- new FpEnabler().execute(ctx)
-    json <- new JsonEnabler().execute(ctx)
-    logging <- new LoggingEnabler().execute(ctx)
-    anorm <- new AnormEnabler().execute(ctx)
-    akka <- new AkkaEnabler().execute(ctx)
-    swagger <- new SwaggerEnabler().execute(ctx)
-    circuitBreaker <- new CircuitBreakerEnabler().execute(ctx)
+    scalariform <- ScalariformEnabler.execute(ctx)
+    sbtHeader <- SbtHeaderEnabler.execute(ctx)
+    buildInfo <- BuildInfoEnabler.execute(ctx)
+    fp <- FpEnabler.execute(ctx)
+    json <- JsonEnabler.execute(ctx)
+    logging <- LoggingEnabler.execute(ctx)
+    anorm <- AnormEnabler.execute(ctx)
+    akka <- AkkaEnabler.execute(ctx)
+    swagger <- SwaggerEnabler.execute(ctx)
+    circuitBreaker <- CircuitBreakerEnabler.execute(ctx)
   } yield EveryFeatureEnablerResult(scalariform, sbtHeader, buildInfo, fp, json, logging, anorm, akka, swagger, circuitBreaker)
 }

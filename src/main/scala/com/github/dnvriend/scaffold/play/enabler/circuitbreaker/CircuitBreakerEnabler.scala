@@ -24,7 +24,7 @@ import scalaz.Disjunction
 
 final case class CircuitBreakerEnablerResult(config: Path) extends EnablerResult
 
-class CircuitBreakerEnabler extends Enabler {
+object CircuitBreakerEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
     config <- createConfig(ctx.resourceDir, Template.config())
     createdModule <- createModule(ctx.srcDir, "play.modules.cb", "CircuitBreakerModule")

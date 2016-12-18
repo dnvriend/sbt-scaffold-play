@@ -17,7 +17,7 @@
 package com.github.dnvriend.scaffold.play.enabler.lagom
 
 // see: https://github.com/lagom/lagom/tree/1.3.0-M1
-class LagomEnabler {
+object LagomEnabler {
 
 }
 

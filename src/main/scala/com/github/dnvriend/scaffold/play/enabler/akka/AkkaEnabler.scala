@@ -24,10 +24,10 @@ import scalaz.Disjunction
 
 final case class AkkaEnablerResult(setting: Path, config: Path) extends EnablerResult
 
-class AkkaEnabler extends Enabler {
+object AkkaEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
-    settings <- createSettings(ctx.baseDir, Template.settings())
-    config <- createConfig(ctx.resourceDir, Template.config())
+    settings <- createSettings(ctx.baseDir, Template.settings)
+    config <- createConfig(ctx.resourceDir, Template.config)
     _ <- addConfig(ctx.resourceDir)
   } yield AkkaEnablerResult(settings, config)
 
@@ -42,12 +42,16 @@ class AkkaEnabler extends Enabler {
 }
 
 object Template {
-  def settings(): String =
+  val settings: String =
     """
-      |
+      |libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.4.12"
+      |libraryDependencies += "com.typesafe.akka" %% "akka-stream" % "2.4.12"
+      |libraryDependencies += "com.typesafe.akka" %% "akka-slf4j" % "2.4.12"
+      |libraryDependencies += "com.typesafe.akka" %% "akka-persistence" % "2.4.12"
+      |libraryDependencies += "com.typesafe.akka" %% "akka-persistence-query-experimental" % "2.4.12"
     """.stripMargin
 
-  def config(): String =
+  val config: String =
     """
       |akka {
       | loggers = ["akka.event.slf4j.Slf4jLogger"]

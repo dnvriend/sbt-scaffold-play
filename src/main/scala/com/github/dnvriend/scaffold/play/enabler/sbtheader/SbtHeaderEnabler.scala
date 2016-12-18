@@ -25,7 +25,7 @@ import scalaz.Disjunction
 
 final case class SbtHeaderEnablerResult(settings: Path, plugin: Path) extends EnablerResult
 
-class SbtHeaderEnabler extends Enabler {
+object SbtHeaderEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
     authorName <- UserInput.readLine(DefaultParsers.any.*.map(_.mkString).examples(ctx.organization), "[sbt-header]: Enter your name > ")
     settings <- createSettings(ctx.baseDir, Template.settings(authorName))

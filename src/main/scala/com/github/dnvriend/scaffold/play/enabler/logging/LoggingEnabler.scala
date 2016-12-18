@@ -24,7 +24,7 @@ import scalaz.Disjunction
 
 final case class LoggingEnablerResult(logback: Path) extends EnablerResult
 
-class LoggingEnabler extends Enabler {
+object LoggingEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
     logback <- createLogback(ctx.resourceDir, Template.logback(ctx.organization))
   } yield LoggingEnablerResult(logback)

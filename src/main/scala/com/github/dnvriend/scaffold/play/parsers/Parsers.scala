@@ -59,8 +59,10 @@ object Parsers {
   case object AnormEnablerChoice extends EnablerChoice
   case object BuildInfoEnablerChoice extends EnablerChoice
   case object ConductrEnablerChoice extends EnablerChoice
+  case object DockerEnablerChoice extends EnablerChoice
   case object CircuitBreakerEnablerChoice extends EnablerChoice
   case object ScalariformEnablerChoice extends EnablerChoice
+  case object KafkaEnablerChoice extends EnablerChoice
   case object LoggerEnablerChoice extends EnablerChoice
   case object JsonEnablerChoice extends EnablerChoice
   case object FpEnablerChoice extends EnablerChoice
@@ -75,7 +77,9 @@ object Parsers {
     val buildinfo: Parser[EnablerChoice] = "buildinfo" ^^^ BuildInfoEnablerChoice
     val circuitBreaker: Parser[EnablerChoice] = ("circuitbreaker" | "cb") ^^^ CircuitBreakerEnablerChoice
     val conductr: Parser[EnablerChoice] = "conductr" ^^^ ConductrEnablerChoice
+    val docker: Parser[EnablerChoice] = "docker" ^^^ DockerEnablerChoice
     val scalariform: Parser[EnablerChoice] = "scalariform" ^^^ ScalariformEnablerChoice
+    val kafka: Parser[EnablerChoice] = "kafka" ^^^ KafkaEnablerChoice
     val logback: Parser[EnablerChoice] = ("logback" | "logger" | "log") ^^^ LoggerEnablerChoice
     val json: Parser[EnablerChoice] = ("json" | "play-json") ^^^ JsonEnablerChoice
     val fp: Parser[EnablerChoice] = ("fp" | "scalaz") ^^^ FpEnablerChoice
@@ -84,7 +88,7 @@ object Parsers {
     val spark: Parser[EnablerChoice] = "spark" ^^^ SparkEnablerChoice
     val all: Parser[EnablerChoice] = "all" ^^^ AllEnablerChoice
 
-    DefaultParsers.token(Space ~> (all | akka | anorm | buildinfo | circuitBreaker | conductr | scalariform | sbtHeader | logback | json | fp | spark | swagger))
+    DefaultParsers.token(Space ~> (all | akka | anorm | buildinfo | circuitBreaker | conductr | docker | kafka | scalariform | sbtHeader | logback | json | fp | spark | swagger))
   }
 
   val scaffoldParser: Parser[ScaffoldChoice] = {

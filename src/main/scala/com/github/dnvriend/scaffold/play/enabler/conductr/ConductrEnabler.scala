@@ -24,7 +24,7 @@ import scalaz.Disjunction
 
 final case class ConductrEnablerResult(settings: Path, plugin: Path) extends EnablerResult
 
-class ConductrEnabler extends Enabler {
+object ConductrEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
     settings <- createSettings(ctx.baseDir, Template.settings(ctx.projectName))
     plugin <- createPlugin(ctx.baseDir, Template.plugin())

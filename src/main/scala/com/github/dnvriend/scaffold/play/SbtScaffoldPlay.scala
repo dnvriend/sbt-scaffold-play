@@ -23,8 +23,10 @@ import com.github.dnvriend.scaffold.play.enabler.anorm.AnormEnabler
 import com.github.dnvriend.scaffold.play.enabler.buildinfo.BuildInfoEnabler
 import com.github.dnvriend.scaffold.play.enabler.circuitbreaker.CircuitBreakerEnabler
 import com.github.dnvriend.scaffold.play.enabler.conductr.ConductrEnabler
+import com.github.dnvriend.scaffold.play.enabler.docker.DockerEnabler
 import com.github.dnvriend.scaffold.play.enabler.fp.FpEnabler
 import com.github.dnvriend.scaffold.play.enabler.json.JsonEnabler
+import com.github.dnvriend.scaffold.play.enabler.kafka.KafkaEnabler
 import com.github.dnvriend.scaffold.play.enabler.logging.LoggingEnabler
 import com.github.dnvriend.scaffold.play.enabler.sbtheader.SbtHeaderEnabler
 import com.github.dnvriend.scaffold.play.enabler.scalariform.ScalariformEnabler
@@ -98,31 +100,35 @@ object SbtScaffoldPlay extends AutoPlugin {
       val choice = Parsers.enablerParser.parsed
       val enablerResult = choice match {
         case AllEnablerChoice =>
-          new EveryFeatureEnabler().execute(ctx)
+          EveryFeatureEnabler.execute(ctx)
         case AnormEnablerChoice =>
-          new AnormEnabler().execute(ctx)
+          AnormEnabler.execute(ctx)
         case AkkaEnablerChoice =>
-          new AkkaEnabler().execute(ctx)
+          AkkaEnabler.execute(ctx)
         case BuildInfoEnablerChoice =>
-          new BuildInfoEnabler().execute(ctx)
+          BuildInfoEnabler.execute(ctx)
         case CircuitBreakerEnablerChoice =>
-          new CircuitBreakerEnabler().execute(ctx)
+          CircuitBreakerEnabler.execute(ctx)
         case ConductrEnablerChoice =>
-          new ConductrEnabler().execute(ctx)
+          ConductrEnabler.execute(ctx)
+        case DockerEnablerChoice =>
+          DockerEnabler.execute(ctx)
         case FpEnablerChoice =>
-          new FpEnabler().execute(ctx)
+          FpEnabler.execute(ctx)
         case JsonEnablerChoice =>
-          new JsonEnabler().execute(ctx)
+          JsonEnabler.execute(ctx)
         case LoggerEnablerChoice =>
-          new LoggingEnabler().execute(ctx)
+          LoggingEnabler.execute(ctx)
+        case KafkaEnablerChoice =>
+          KafkaEnabler.execute(ctx)
         case ScalariformEnablerChoice =>
-          new ScalariformEnabler().execute(ctx)
+          ScalariformEnabler.execute(ctx)
         case SbtHeaderEnablerChoice =>
-          new SbtHeaderEnabler().execute(ctx)
+          SbtHeaderEnabler.execute(ctx)
         case SwaggerEnablerChoice =>
-          new SwaggerEnabler().execute(ctx)
+          SwaggerEnabler.execute(ctx)
         case SparkEnablerChoice =>
-          new SparkEnabler().execute(ctx)
+          SparkEnabler.execute(ctx)
       }
 
       enablerResult match {

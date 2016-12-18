@@ -22,15 +22,15 @@ import com.github.dnvriend.scaffold.play.util.FileUtils
 
 import scalaz.Disjunction
 
-final case class SparkEnablerResult(settings: Path, config: Path) extends EnablerResult
+final case class SparkEnablerResult(settings: Path, config: Path, createdModule: Path) extends EnablerResult
 
-class SparkEnabler extends Enabler {
+object SparkEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
     settings <- createSettings(ctx.baseDir, Template.settings())
     config <- createConfig(ctx.resourceDir, Template.config())
     createdModule <- createModule(ctx.srcDir, "play.modules.spark", "SparkModule")
     _ <- addConfig(ctx.resourceDir)
-  } yield SparkEnablerResult(settings, config)
+  } yield SparkEnablerResult(settings, config, createdModule)
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
     FileUtils.writeFile(baseDir / "build-spark.sbt", content)

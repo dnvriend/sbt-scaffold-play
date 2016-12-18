@@ -24,7 +24,7 @@ import scalaz.Disjunction
 
 final case class AnormEnablerResult(setting: Path, config: Path) extends EnablerResult
 
-class AnormEnabler extends Enabler {
+object AnormEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, AnormEnablerResult] = for {
     settings <- createSettings(ctx.baseDir, Template.settings())
     config <- createConfig(ctx.resourceDir, Template.config())
