@@ -36,7 +36,8 @@ and the second terminal scaffolds features in your play application
 You can enable play features with the __enable__ command for example:
 
 ```bash
-> enable swagger
+[play-seed] $ enable swagger
+[info] Enable complete
 ```
 
 This will install swagger in your project.
@@ -58,8 +59,131 @@ The following features can be enabled:
 
 You can also type `all` to get scalariform, sbtheader, buildinfo, fp, json, loggng, anorm, akka and swagger.
 
+Enabling all features will add the following structure to `play-seed`:
+
+```bash
+.
+├── LICENSE
+├── README.md
+├── build-akka.sbt
+├── build-anorm.sbt
+├── build-buildinfo.sbt
+├── build-fp.sbt
+├── build-json.sbt
+├── build-sbt-header.sbt
+├── build-scalariform.sbt
+├── build-swagger.sbt
+├── build.sbt
+├── conf
+│   ├── akka.conf
+│   ├── anorm.conf
+│   ├── application.conf
+│   ├── logback.xml
+│   ├── routes
+│   └── swagger.conf
+├── project
+│   ├── build.properties
+│   ├── plugin-buildinfo.sbt
+│   ├── plugin-sbt-header.sbt
+│   ├── plugin-scalariform.sbt
+│   ├── plugins.sbt
+```
+
 ## Scaffolding
-...
+You can scaffold (quickly create basic working functionality which you then alter to fit your needs) using the __scaffold__
+command for example:
+
+```bash
+[play-seed] $ scaffold crud
+[crud-controller] Enter component name > people
+[crud-controller] Enter REST resource name > people
+Enter entityName > Person
+Person(): Enter field Name > name
+Person(): Enter field type > str
+Person(): Another field ? > y
+Person(name: String): Enter field Name > age
+Person(name: String): Enter field type > int
+Person(name: String): Another field ? > n
+[info] Scaffold complete
+```
+
+The scaffold is available for use.
+
+## Available Scaffolds
+
+### crud
+Creates a very simple CRUD REST endpoint with `swagger` annotations, an `evolution` script, a REST endpoint added to `routes`
+so you can directly call the endpoint after scaffolding and when Play recompiles the scaffold should work.
+
+```bash
+[play-seed] $ scaffold crud
+[crud-controller] Enter component name > people
+[crud-controller] Enter REST resource name > people
+Enter entityName > Person
+Person(): Enter field Name > name
+Person(): Enter field type > str
+Person(): Another field ? > y
+Person(name: String): Enter field Name > age
+Person(name: String): Enter field type > int
+Person(name: String): Another field ? > n
+[info] Scaffold complete
+```
+
+The scaffold creates the following structure (package name will be different on your project):
+
+```bash
+.
+├── LICENSE
+├── README.md
+├── app
+│   └── com
+│       └── github
+│           └── dnvriend
+│               ├── Module.scala
+│               └── component
+│                   └── people
+│                       ├── Person.scala
+│                       ├── controller
+│                       │   └── PersonController.scala
+│                       ├── repository
+│                       │   └── PersonRepository.scala
+│                       └── util
+│                           ├── DisjunctionOps.scala
+│                           ├── ValidationOps.scala
+│                           └── Validator.scala
+├── build-akka.sbt
+├── build-anorm.sbt
+├── build-buildinfo.sbt
+├── build-fp.sbt
+├── build-json.sbt
+├── build-sbt-header.sbt
+├── build-scalariform.sbt
+├── build-swagger.sbt
+├── build.sbt
+├── conf
+│   ├── akka.conf
+│   ├── anorm.conf
+│   ├── application.conf
+│   ├── evolutions
+│   │   └── default
+│   │       └── 1.sql
+│   ├── logback.xml
+│   ├── routes
+│   └── swagger.conf
+├── project
+│   ├── build.properties
+│   ├── plugin-buildinfo.sbt
+│   ├── plugin-sbt-header.sbt
+│   ├── plugin-scalariform.sbt
+│   ├── plugins.sbt
+└── test
+    ├── com
+    │   └── github
+    │       └── dnvriend
+    │           └── TestSpec.scala
+    └── resources
+        └── application.conf
+```
 
 ## Releases
 - v0.0.1 (2016-12-18)
