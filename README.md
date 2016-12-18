@@ -113,7 +113,7 @@ The scaffold is available for use.
 
 ### crud
 Creates a very simple CRUD REST endpoint with `swagger` annotations, an `evolution` script, a REST endpoint added to `routes`
-so you can directly call the endpoint after scaffolding and when Play recompiles the scaffold should work.
+so you can directly call the endpoint after scaffolding.
 
 ```bash
 [play-seed] $ scaffold crud
@@ -207,6 +207,29 @@ The scaffold creates the following structure (package name will be different on 
 │                   └── ping
 │                       └── controller
 │                           └── PingController.scala
+```
+
+### BuildInfoController (not yet released)
+Creates a ping REST endpoint with resource `/api/info` with `swagger` annotations, with endpoint added to `routes` file,
+so you can directly call the endpoint after scaffolding.
+
+```bash
+[play-seed] $ scaffold buildinfo
+[buildinfo-controller] Enter component name > buildinfo
+[info] Scaffold complete
+```
+
+The scaffold creates the following structure (package name will be different on your project):
+
+```bash
+├── app
+│   └── com
+│       └── github
+│           └── dnvriend
+│               └── component
+│                   ├── buildinfo
+│                   │   └── controller
+│                   │       └── BuildInfoController.scala
 ```
 
 ## Releases

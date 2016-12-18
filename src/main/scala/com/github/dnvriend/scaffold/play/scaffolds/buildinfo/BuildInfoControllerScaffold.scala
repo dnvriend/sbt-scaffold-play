@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play.scaffolds.pingcontroller
+package com.github.dnvriend.scaffold.play.scaffolds.buildinfo
 
 import ammonite.ops._
 import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext, ScaffoldResult }
@@ -23,18 +23,18 @@ import com.github.dnvriend.scaffold.play.util.FileUtils
 
 import scalaz.Disjunction
 
-final case class PingControllerScaffoldResult(componentName: String, componentPackage: String, createdController: Path, alteredRoutes: Path) extends ScaffoldResult
+final case class BuildInfoControllerScaffoldResult(componentName: String, componentPackage: String, createdController: Path, alteredRoutes: Path) extends ScaffoldResult
 
-class PingControllerScaffold extends Scaffold {
+class BuildInfoControllerScaffold extends Scaffold {
   override def execute(ctx: ScaffoldContext): Disjunction[String, ScaffoldResult] = for {
-    componentName <- ComponentNameUserInput.askUser("ping-controller", "ping")
+    componentName <- ComponentNameUserInput.askUser("buildinfo-controller", "buildinfo")
     componentPackage = s"${ctx.organization}.component.$componentName"
-    createdController <- createController(ctx.srcDir, componentPackage)
+    createdController <- createController(ctx.srcDir, ctx.organization, componentPackage)
     alteredRoutes <- addRoutes(ctx.resourceDir, componentPackage)
-  } yield PingControllerScaffoldResult(componentName, componentPackage, createdController, alteredRoutes)
+  } yield BuildInfoControllerScaffoldResult(componentName, componentPackage, createdController, alteredRoutes)
 
-  def createController(srcDir: Path, componentPackage: String): Disjunction[String, Path] =
-    FileUtils.createClass(srcDir, s"$componentPackage.controller", "PingController", Template.controller(componentPackage))
+  def createController(srcDir: Path, organization: String, componentPackage: String): Disjunction[String, Path] =
+    FileUtils.createClass(srcDir, s"$componentPackage.controller", "BuildInfoController", Template.controller(organization, componentPackage))
 
   def create(srcDir: Path, packageName: String, className: String, content: String): Disjunction[String, Path] =
     FileUtils.createClass(srcDir, packageName, className, content)
@@ -44,30 +44,31 @@ class PingControllerScaffold extends Scaffold {
 }
 
 object Template {
-  def controller(componentPackage: String): String =
+  def controller(organization: String, componentPackage: String): String =
     s"""package $componentPackage.controller
        |
+       |import play.api.http.ContentTypes
        |import play.api.mvc.{ Action, Controller }
        |import org.slf4j.{ Logger, LoggerFactory }
        |import io.swagger.annotations._
        |
-       |@Api(value = "/api/ping")
-       |class PingController extends Controller {
+       |@Api(value = "/api/info")
+       |class BuildInfoController extends Controller {
        |   val log: Logger = LoggerFactory.getLogger(this.getClass)
        |
-       |   @ApiOperation(value = "Endpoint for ping", response = classOf[String], httpMethod = "GET")
-       |   @ApiResponses(Array(new ApiResponse(code = 200, message = "pong")))
-       |   def ping = Action { request =>
-       |     log.debug(s"Received ping from $${request.remoteAddress}")
-       |     Ok("pong")
+       |   @ApiOperation(value = "Endpoint for BuildInfo", response = classOf[String], httpMethod = "GET")
+       |   @ApiResponses(Array(new ApiResponse(code = 200, message = "BuildInfo")))
+       |   def info = Action { request =>
+       |     log.debug(s"Received buildinfo from $${request.remoteAddress}")
+       |     Ok($organization.BuildInfo.toJson).as(ContentTypes.JSON)
        |   }
        |}
   """.stripMargin
 
   def routes(componentPackage: String): String = {
-    val controller: String = s"$componentPackage.controller.PingController"
+    val controller: String = s"$componentPackage.controller.BuildInfoController"
     s"""
-       |GET /api/ping $controller.ping
+       |GET /api/info $controller.info
     """.stripMargin
   }
 }

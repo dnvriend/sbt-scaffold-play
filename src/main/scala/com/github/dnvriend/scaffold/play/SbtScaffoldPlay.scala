@@ -33,6 +33,7 @@ import com.github.dnvriend.scaffold.play.enabler.swagger.SwaggerEnabler
 import com.github.dnvriend.scaffold.play.parsers.Parsers
 import com.github.dnvriend.scaffold.play.parsers.Parsers._
 import com.github.dnvriend.scaffold.play.scaffolds._
+import com.github.dnvriend.scaffold.play.scaffolds.buildinfo.BuildInfoControllerScaffold
 import com.github.dnvriend.scaffold.play.scaffolds.controller.ControllerScaffold
 import com.github.dnvriend.scaffold.play.scaffolds.crudcontroller.CrudControllerScaffold
 import com.github.dnvriend.scaffold.play.scaffolds.dto.DtoScaffold
@@ -146,6 +147,8 @@ object SbtScaffoldPlay extends AutoPlugin {
       val log: Logger = streams.value.log
       val choice: ScaffoldChoice = Parsers.scaffoldParser.parsed
       val scaffoldResult = choice match {
+        case BuildInfoControllerChoice =>
+          new BuildInfoControllerScaffold().execute(ctx)
         case ControllerChoice =>
           new ControllerScaffold().execute(ctx)
         case CrudControllerChoice =>
