@@ -27,7 +27,7 @@ final case class ConductrEnablerResult(settings: Path, plugin: Path) extends Ena
 object ConductrEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
     settings <- createSettings(ctx.baseDir, Template.settings(ctx.projectName))
-    plugin <- createPlugin(ctx.baseDir, Template.plugin())
+    plugin <- createPlugin(ctx.baseDir, Template.plugin(ctx))
   } yield ConductrEnablerResult(settings, plugin)
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
@@ -55,8 +55,8 @@ object Template {
        |BundleKeys.startCommand += "-Dhttp.address=$$PLAY_BIND_IP -Dhttp.port=$$PLAY_BIND_PORT -Dplay.akka.actor-system=$$BUNDLE_SYSTEM"
     """.stripMargin
 
-  def plugin(): String =
-    """
-      |addSbtPlugin("com.lightbend.conductr" % "sbt-conductr" % "2.1.20")
+  def plugin(ctx: EnablerContext): String =
+    s"""
+      |addSbtPlugin("com.lightbend.conductr" % "sbt-conductr" % "${ctx.conductrVersion}")
     """.stripMargin
 }

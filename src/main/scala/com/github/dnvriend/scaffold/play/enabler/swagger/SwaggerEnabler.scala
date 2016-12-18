@@ -28,7 +28,7 @@ final case class SwaggerEnablerResult(settings: Path, plugin: Path) extends Enab
 // see: https://github.com/swagger-api/swagger-play/tree/master/play-2.5/swagger-play2
 object SwaggerEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
-    settings <- createSettings(ctx.baseDir, Template.settings())
+    settings <- createSettings(ctx.baseDir, Template.settings(ctx))
     config <- createConfig(ctx.resourceDir, Template.config())
     _ <- addConfig(ctx.resourceDir)
     _ <- addRoute(ctx.resourceDir)
@@ -48,9 +48,9 @@ object SwaggerEnabler extends Enabler {
 }
 
 object Template {
-  def settings(): String =
+  def settings(ctx: EnablerContext): String =
     s"""
-       |libraryDependencies += "io.swagger" %% "swagger-play2" % "1.5.3"
+       |libraryDependencies += "io.swagger" %% "swagger-play2" % "${ctx.swaggerVersion}"
     """.stripMargin
 
   def config(): String =

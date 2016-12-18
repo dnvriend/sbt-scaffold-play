@@ -27,7 +27,7 @@ final case class ScalariformEnablerResult(settings: Path, plugin: Path) extends 
 object ScalariformEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
     settings <- createSettings(ctx.baseDir, Template.settings())
-    plugin <- createPlugin(ctx.baseDir, Template.plugin())
+    plugin <- createPlugin(ctx.baseDir, Template.plugin(ctx))
   } yield ScalariformEnablerResult(settings, plugin)
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
@@ -50,8 +50,8 @@ object Template {
       |  .setPreference(DoubleIndentClassDeclaration, true)
     """.stripMargin
 
-  def plugin(): String =
-    """
-      |addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")
+  def plugin(ctx: EnablerContext): String =
+    s"""
+      |addSbtPlugin("org.scalariform" % "sbt-scalariform" % "${ctx.scalariformVersion}")
     """.stripMargin
 }

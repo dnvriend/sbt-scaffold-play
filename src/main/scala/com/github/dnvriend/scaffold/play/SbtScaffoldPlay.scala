@@ -63,11 +63,49 @@ object SbtScaffoldPlay extends AutoPlugin {
     val scaffold: InputKey[Unit] = inputKey[Unit]("scaffold features in play")
     val scaffoldContext: TaskKey[ScaffoldContext] = taskKey[ScaffoldContext]("Creates the scaffold context")
     val enablerContext: TaskKey[EnablerContext] = taskKey[EnablerContext]("Creates the enabler context")
+
+    val scaffoldVersionAkka: SettingKey[String] = settingKey[String]("Enabler Akka version")
+    val scaffoldVersionHikariCp: SettingKey[String] = settingKey[String]("Enabler hikariCP version")
+    val scaffoldVersionH2: SettingKey[String] = settingKey[String]("Enabler H2 version")
+    val scaffoldVersionPostgres: SettingKey[String] = settingKey[String]("Enabler Postgres version")
+    val scaffoldVersionAnorm: SettingKey[String] = settingKey[String]("Enabler Anorm version")
+    val scaffoldVersionSwagger: SettingKey[String] = settingKey[String]("Enabler Swagger version")
+    val scaffoldVersionAkkaStreamKafka: SettingKey[String] = settingKey[String]("Enabler AkkaStreamKafka version")
+    val scaffoldVersionBuildInfo: SettingKey[String] = settingKey[String]("Enabler BuildInfo version")
+    val scaffoldVersionConductr: SettingKey[String] = settingKey[String]("Enabler Conductr version")
+    val scaffoldVersionSbtHeader: SettingKey[String] = settingKey[String]("Enabler SbtHeader version")
+    val scaffoldVersionScalariform: SettingKey[String] = settingKey[String]("Enabler Scalariform version")
+    val scaffoldVersionSpark: SettingKey[String] = settingKey[String]("Enabler Spark version")
+    val scaffoldVersionScalaz: SettingKey[String] = settingKey[String]("Enabler Scalaz version")
+    val scaffoldVersionScalazScalaTest: SettingKey[String] = settingKey[String]("Enabler ScalazScalaTest version")
+    val scaffoldVersionShapeless: SettingKey[String] = settingKey[String]("Enabler Shapeless version")
+    val scaffoldVersionNscalaTime: SettingKey[String] = settingKey[String]("Enabler nscalatime version")
+    val scaffoldVersionPlayJson: SettingKey[String] = settingKey[String]("Enabler play-json version")
+    val scaffoldVersionLagom: SettingKey[String] = settingKey[String]("Enabler Lagom version")
   }
 
   import autoImport._
 
   lazy val defaultSettings: Seq[Setting[_]] = Seq(
+    scaffoldVersionAkka := "2.4.12",
+    scaffoldVersionHikariCp := "2.5.1",
+    scaffoldVersionH2 := "1.4.193",
+    scaffoldVersionPostgres := "9.4.1212",
+    scaffoldVersionAnorm := "2.5.2",
+    scaffoldVersionSwagger := "1.5.3",
+    scaffoldVersionAkkaStreamKafka := "0.13",
+    scaffoldVersionBuildInfo := "0.6.1",
+    scaffoldVersionConductr := "2.1.20",
+    scaffoldVersionSbtHeader := "1.5.1",
+    scaffoldVersionScalariform := "1.6.0",
+    scaffoldVersionSpark := "2.0.2",
+    scaffoldVersionScalaz := "7.2.8",
+    scaffoldVersionScalazScalaTest := "1.1.0",
+    scaffoldVersionShapeless := "2.3.2",
+    scaffoldVersionNscalaTime := "2.14.0",
+    scaffoldVersionPlayJson := "2.5.10",
+    scaffoldVersionLagom := "1.3.0-M1",
+
     scaffoldDirectory := {
       val dir = baseDirectory.value / ".scaffold"
       IO.createDirectory(dir)
@@ -91,7 +129,32 @@ object SbtScaffoldPlay extends AutoPlugin {
       val testDir: File = scaffoldTestDirectory.value
       val organizationName: String = organization.value
       val projectName: String = name.value
-      EnablerContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(resourceDir), ammonite.ops.Path(testDir), organizationName, projectName)
+      new EnablerContext(
+        ammonite.ops.Path(baseDir),
+        ammonite.ops.Path(srcDir),
+        ammonite.ops.Path(resourceDir),
+        ammonite.ops.Path(testDir),
+        organizationName,
+        projectName,
+        scaffoldVersionAkka.value,
+        scaffoldVersionHikariCp.value,
+        scaffoldVersionH2.value,
+        scaffoldVersionPostgres.value,
+        scaffoldVersionAnorm.value,
+        scaffoldVersionSwagger.value,
+        scaffoldVersionAkkaStreamKafka.value,
+        scaffoldVersionBuildInfo.value,
+        scaffoldVersionConductr.value,
+        scaffoldVersionSbtHeader.value,
+        scaffoldVersionScalariform.value,
+        scaffoldVersionSpark.value,
+        scaffoldVersionScalaz.value,
+        scaffoldVersionScalazScalaTest.value,
+        scaffoldVersionShapeless.value,
+        scaffoldVersionNscalaTime.value,
+        scaffoldVersionPlayJson.value,
+        scaffoldVersionLagom.value
+      )
     },
 
     enable := {

@@ -45,13 +45,16 @@ This will install swagger in your project.
 The following features can be enabled:
 
 - akka
+- all
 - anorm
 - buildinfo
 - circuitbreaker
 - conductr
+- docker
 - fp
 - json
-- logging
+- kafka
+- logback
 - sbtheader
 - scalariform
 - spark
@@ -89,25 +92,140 @@ Enabling all features will add the following structure to `play-seed`:
 │   ├── plugins.sbt
 ```
 
-### Swagger
-Swagger can be enabled by typing:
+### Akka
+[Akka](http://akka.io/) can be enabled by typing:
 
-```bash
-[play-seed] $ enable swagger
+```
+[play-seed] $ enable akka
 [info] Enable complete
 ```
 
-The following routes will be added:
+sbt settings `build-akka.sbt`:
 
-```bash
-GET           /api-docs              controllers.ApiHelpController.getResources
-GET           /api-docs/*path        controllers.ApiHelpController.getResource(path: String)
+```
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.4.12"
+libraryDependencies += "com.typesafe.akka" %% "akka-stream" % "2.4.12"
+libraryDependencies += "com.typesafe.akka" %% "akka-slf4j" % "2.4.12"
+libraryDependencies += "com.typesafe.akka" %% "akka-persistence" % "2.4.12"
+libraryDependencies += "com.typesafe.akka" %% "akka-persistence-query-experimental" % "2.4.12"
 ```
 
-By default, the swagger api is available at http://localhost:9000/api-docs or `http :9000/api-docs` if you are using [httpie](https://httpie.org/).
+configuration `conf/akka.conf`:
+
+```
+akka {
+ loggers = ["akka.event.slf4j.Slf4jLogger"]
+  loglevel = debug
+  stdout-loglevel = info
+  logging-filter = "akka.event.slf4j.Slf4jLoggingFilter"
+
+actor {
+    serialize-messages = off // when on, the akka framework will determine whether or not messages can be serialized, else the plugin
+
+    debug {
+      receive = on // log all messages sent to an actor if that actors receive method is a LoggingReceive
+      autoreceive = off // log all special messages like Kill, PoisoffPill etc sent to all actors
+      lifecycle = off // log all actor lifecycle events of all actors
+      fsm = off // enable logging of all events, transitioffs and timers of FSM Actors that extend LoggingFSM
+      event-stream = off // enable logging of subscriptions (subscribe/unsubscribe) on the ActorSystem.eventStream
+    }
+  }
+}
+```
+
+### Anorm
+[Anorm](https://github.com/playframework/anorm) can be enabled by typing:
+
+```
+[play-seed] $ enable anorm
+[info] Enable complete
+```
+
+sbt settings `build-anorm.sbt`:
+
+```
+// database support
+libraryDependencies += jdbc
+libraryDependencies += evolutions
+libraryDependencies += "com.zaxxer" % "HikariCP" % "2.5.1"
+libraryDependencies += "com.typesafe.play" %% "anorm" % "2.5.2"
+// database driver
+libraryDependencies += "com.h2database" % "h2" % "1.4.193"
+libraryDependencies += "org.postgresql" % "postgresql" % "9.4.1212"
+```
+
+configuration `conf/anorm.conf`:
+
+```
+# H2 configuration
+db.default.driver=org.h2.Driver
+db.default.url="jdbc:h2:mem:play"
+
+# Postgres configuration
+#db.default.driver=org.postgresql.Driver
+#db.default.url="jdbc:postgresql://localhost:5432/postgres?reWriteBatchedInserts=true"
+#db.default.username="postgres"
+#db.default.password="postgres"
+
+# play evolutions
+play.evolutions.enabled=true
+play.evolutions.autoApply=true
+
+# Connection pool configuration
+play.db.pool=hikaricp
+play.db.prototype.hikaricp.dataSourceClassName = null
+play.db.prototype.hikaricp.autocommit = true
+play.db.prototype.hikaricp.connectionTimeout = 30 seconds
+play.db.prototype.hikaricp.idleTimeout = 10 minutes
+play.db.prototype.hikaricp.maxLifetime = 30 minutes
+play.db.prototype.hikaricp.connectionTestQuery = null
+play.db.prototype.hikaricp.minimumIdle = null
+play.db.prototype.hikaricp.maximumPoolSize = 10
+play.db.prototype.hikaricp.poolName = null
+play.db.prototype.hikaricp.initializationFailFast = false
+play.db.prototype.hikaricp.isolateInternalQueries = false
+play.db.prototype.hikaricp.allowPoolSuspension = false
+play.db.prototype.hikaricp.readOnly = false
+play.db.prototype.hikaricp.registerMbeans = false
+play.db.prototype.hikaricp.catalog = null
+play.db.prototype.hikaricp.connectionInitSql = null
+play.db.prototype.hikaricp.transactionIsolation = null
+play.db.prototype.hikaricp.validationTimeout = 5 seconds
+play.db.prototype.hikaricp.leakDetectionThreshold = null
+```
+
+### Buildinfo
+[Buildinfo](https://github.com/sbt/sbt-buildinfo) can be enabled by typing:
+
+```
+[play-seed] $ enable buildinfo
+[info] Enable complete
+```
+
+plugin config `project/plugin-buildinfo.sbt`:
+
+```
+addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.6.1")
+```
+
+sbt settings: `build-buildinfo.sbt`:
+
+```
+enablePlugins(BuildInfoPlugin)
+
+buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
+
+buildInfoOptions += BuildInfoOption.ToMap
+
+buildInfoOptions += BuildInfoOption.ToJson
+
+buildInfoOptions += BuildInfoOption.BuildTime
+
+buildInfoPackage := organization.value
+```
 
 ### CircuitBreaker
-CircuitBreaker can be added by typing:
+[CircuitBreaker](http://doc.akka.io/docs/akka/current/common/circuitbreaker.html) can be added by typing:
 
 ```bash
 [play-seed] $ enable circuitbreaker
@@ -147,6 +265,378 @@ class CircuitBreakerModule extends AbstractModule {
 ```
 
 After enabling CircuitBreaker, you can inject a circuitBreaker in any resource like Controller, Repository etc.
+
+### Conductr
+[Conductr](https://github.com/typesafehub/sbt-conductr) can be added by typing:
+
+```
+[play-seed] $ enable conductr
+[info] Enable complete
+```
+
+plugin config `project/plugin-conductr.sbt`:
+
+```
+addSbtPlugin("com.lightbend.conductr" % "sbt-conductr" % "2.1.20")
+```
+
+configuration `build-conductr.sbt`:
+
+```
+enablePlugins(PlayBundlePlugin)
+
+BundleKeys.endpoints := Map(
+  "play" -> Endpoint(bindProtocol = "http", bindPort = 0, services = Set(URI("http://:9000/play-seed"))),
+  "akka-remote" -> Endpoint("tcp")
+)
+
+normalizedName in Bundle := "play-seed"
+
+BundleKeys.system := "play"
+
+BundleKeys.startCommand += "-Dhttp.address=$PLAY_BIND_IP -Dhttp.port=$PLAY_BIND_PORT -Dplay.akka.actor-system=$BUNDLE_SYSTEM"
+```
+
+### Docker
+A docker-compose file can be added with the latest kafka, zookeeper, cassandra and postgres by typing:
+
+```
+[play-seed] $ enable docker
+[info] Enable complete
+```
+
+This will add `docker-compose.yml`:
+
+```
+version: '2'
+
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    restart: always
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: wurstmeister/kafka
+    restart: always
+    ports:
+      - "9092:9092"
+    environment:
+      - "KAFKA_ADVERTISED_HOST_NAME=localhost"
+      - "KAFKA_CREATE_TOPICS=test:1:1"
+      - "KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  cassandra:
+    image: cassandra:latest
+    restart: always
+    ports:
+      - "9042:9042"
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - "POSTGRES_DB=postgres"
+      - "POSTGRES_USER=postgres"
+      - "POSTGRES_PASSWORD=postgres"
+    volumes:
+      - "./initdb:/docker-entrypoint-initdb.d"
+```
+
+### FP
+Your favorite functional programming libraries can be added by typing:
+
+```
+[play-seed] $ enable fp
+[info] Enable complete
+```
+
+sbt settings `build-fp.sbt`:
+
+```
+libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.8"
+libraryDependencies += "com.chuusai" %% "shapeless" % "2.3.2"
+libraryDependencies += "org.typelevel" %% "scalaz-scalatest" % "1.1.0" % Test
+```
+
+### Json
+Play-json support can be added by typing:
+
+```
+[play-seed] $ enable json
+[info] Enable complete
+```
+
+sbt settings: `build-json.sbt`:
+
+```
+libraryDependencies += ws
+libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "2.14.0"
+libraryDependencies += "com.typesafe.play" %% "play-json" % "1.3.0-M1"
+```
+
+### Kafka
+Kafka can be added by typing:
+
+```
+[play-seed] $ enable kafka
+[info] Enable complete
+```
+
+sbt settings: `build-kafka.sbt`:
+
+```
+libraryDependencies += "com.typesafe.akka" %% "akka-stream-kafka" % "0.13"
+```
+
+producer config: `conf/kafka-producer.conf`:
+
+```
+# Properties for akka.kafka.ProducerSettings can be
+# defined in this section or a configuration section with
+# the same layout.
+akka.kafka.producer {
+  # Tuning parameter of how many sends that can run in parallel.
+  parallelism = 100
+
+  # How long to wait for `KafkaProducer.close`
+  close-timeout = 60s
+
+  # Fully qualified config path which holds the dispatcher configuration
+  # to be used by the producer stages. Some blocking may occur.
+  # When this value is empty, the dispatcher configured for the stream
+  # will be used.
+  use-dispatcher = "akka.kafka.default-dispatcher"
+
+  # Properties defined by org.apache.kafka.clients.producer.ProducerConfig
+  # can be defined in this configuration section.
+  kafka-clients {
+  }
+}
+```
+
+consumer config: `conf/kafka-consumer.conf`:
+
+```
+# Properties for akka.kafka.ConsumerSettings can be
+# defined in this section or a configuration section with
+# the same layout.
+akka.kafka.consumer {
+  # Tuning property of scheduled polls.
+  poll-interval = 50ms
+
+  # Tuning property of the `KafkaConsumer.poll` parameter.
+  # Note that non-zero value means that blocking of the thread that
+  # is executing the stage will be blocked.
+  poll-timeout = 50ms
+
+  # The stage will be await outstanding offset commit requests before
+  # shutting down, but if that takes longer than this timeout it will
+  # stop forcefully.
+  stop-timeout = 30s
+
+  # How long to wait for `KafkaConsumer.close`
+  close-timeout = 20s
+
+  # If offset commit requests are not completed within this timeout
+  # the returned Future is completed `TimeoutException`.
+  commit-timeout = 15s
+
+  # If the KafkaConsumer can't connect to the broker the poll will be
+  # aborted after this timeout. The KafkaConsumerActor will throw
+  # org.apache.kafka.common.errors.WakeupException which will be ignored
+  # until max-wakeups limit gets exceeded.
+  wakeup-timeout = 3s
+
+  # After exceeding maxinum wakeups the consumer will stop and the stage will fail.
+  max-wakeups = 10
+
+  # Fully qualified config path which holds the dispatcher configuration
+  # to be used by the KafkaConsumerActor. Some blocking may occur.
+  use-dispatcher = "akka.kafka.default-dispatcher"
+
+  # Properties defined by org.apache.kafka.clients.consumer.ConsumerConfig
+  # can be defined in this configuration section.
+  kafka-clients {
+    # Disable auto-commit by default
+    enable.auto.commit = false
+  }
+}
+```
+
+### Logback
+A `logback.xml` can be added by typing:
+
+```
+[play-seed] $ enable logback
+[info] Enable complete
+```
+
+logback configuration: `conf/logback.xml`:
+
+```
+<configuration debug="false">
+  <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>debug</level>
+    </filter>
+    <encoder>
+      <pattern>%date {ISO8601} - %logger -&gt; %-5level[%thread] %logger {0} - %msg%n</pattern>
+    </encoder>
+  </appender>
+  <logger name="akka" level="info"/>
+  <logger name="slick.backend.DatabaseComponent.action" level="debug"/>
+  <logger name="com.zaxxer.hikari.pool.HikariPool" level="debug"/>
+  <logger name="org.jdbcdslog.ConnectionLogger" level="debug"/>
+  <logger name="org.jdbcdslog.StatementLogger" level="debug"/>
+  <logger name="org.jdbcdslog.ResultSetLogger" level="debug"/>
+  <logger name="com.github.dnvriend" level="debug"/>
+  <root level="error">
+    <appender-ref ref="console"/>
+  </root>
+</configuration>
+```
+
+### SbtHeader
+[sbt-header](https://github.com/sbt/sbt-header) can be added by typing:
+
+```
+[play-seed] $ enable header
+[sbt-header]: Enter your name > Your Name Here
+[info] Enable complete
+```
+
+plugin config `project/plugin-sbt-header.sbt`:
+
+```
+addSbtPlugin("de.heikoseeberger" % "sbt-header" % "1.5.1")
+```
+
+sbt settings `build-sbt-header.sbt`:
+
+```
+enablePlugins(AutomateHeaderPlugin)
+
+licenses +=("Apache-2.0", url("http://opensource.org/licenses/apache2.0.php"))
+
+import de.heikoseeberger.sbtheader.license.Apache2_0
+
+headers := Map(
+  "scala" -> Apache2_0("2016", "Your Name Here"),
+  "conf" -> Apache2_0("2016", "Your Name Here", "#")
+)
+```
+
+### Scalariform
+[sbt-scalariform](https://github.com/sbt/sbt-scalariform) can be added by typing:
+
+```
+[play-seed] $ enable scalariform
+[info] Enable complete
+```
+
+plugin config `project/plugin-scalariform.sbt`:
+
+```
+addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")
+```
+
+sbt settings `build-scalariform.sbt`:
+
+```
+import scalariform.formatter.preferences._
+import com.typesafe.sbt.SbtScalariform
+
+SbtScalariform.autoImport.scalariformPreferences := SbtScalariform.autoImport.scalariformPreferences.value
+  .setPreference(AlignSingleLineCaseStatements, true)
+  .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 100)
+  .setPreference(DoubleIndentClassDeclaration, true)
+```
+
+### Spark
+[Apache Spark](https://github.com/apache/spark) can be added by typing:
+
+```
+[play-seed] $ enable spark
+[info] Enable complete
+```
+
+sbt settings `build-spark.sbt`:
+
+```
+libraryDependencies += "org.apache.spark" %% "spark-core" % "2.0.2"
+libraryDependencies += "org.apache.spark" %% "spark-sql" % "2.0.2"
+```
+
+configuration `conf/spark.conf`:
+
+```bash
+play.modules.enabled += "play.modules.spark.SparkModule"
+```
+
+And it will add the `play.modules.spark.SparkModule`:
+
+```scala
+package play.modules.spark
+
+import com.google.inject.{AbstractModule, Provides}
+import org.apache.spark.SparkContext
+import org.apache.spark.sql.SparkSession
+
+class SparkModule extends AbstractModule {
+  override def configure(): Unit = {
+    @Provides
+    def sparkContextProvider(sparkSession: SparkSession): SparkContext =
+      sparkSession.sparkContext
+
+    @Provides
+    def sparkSessionProvider: SparkSession =
+      SparkSession.builder()
+      .config("spark.sql.warehouse.dir", "file:/tmp/spark-warehouse")
+      .config("spark.scheduler.mode", "FAIR")
+      .config("spark.sql.crossJoin.enabled", "true")
+      .config("spark.ui.enabled", "true") // better to enable this to see what is going on
+      .config("spark.sql.autoBroadcastJoinThreshold", 1)
+      .config("spark.default.parallelism", 4) // number of cores
+      .config("spark.sql.shuffle.partitions", 1) // default 200
+      .config("spark.memory.offHeap.enabled", "true") // If true, Spark will attempt to use off-heap memory for certain operations.
+      .config("spark.memory.offHeap.size", "536870912") // The absolute amount of memory in bytes which can be used for off-heap allocation.
+      .config("spark.streaming.clock", "org.apache.spark.streaming.util.ManualClock")
+      .config("spark.streaming.stopSparkContextByDefault", "false")
+      .config("spark.debug.maxToStringFields", 50) // default 25 see org.apache.spark.util.Utils
+      // see: https://spark.apache.org/docs/latest/sql-programming-guide.html#caching-data-in-memory
+      //    .config("spark.sql.inMemoryColumnarStorage.compressed", "true")
+      //    .config("spark.sql.inMemoryColumnarStorage.batchSize", "10000")
+      .master("local[2]") // better not to set this to 2 for spark-streaming
+      .appName("play-spark").getOrCreate()
+  }
+}
+```
+
+After enabling Spark, you can inject a `org.apache.spark.sql.SparkSession` in any resource like Controller, Repository etc.
+
+### Swagger
+[Swagger](https://github.com/swagger-api/swagger-play/tree/master/play-2.5/swagger-play2) can be enabled by typing:
+
+```bash
+[play-seed] $ enable swagger
+[info] Enable complete
+```
+
+The following routes will be added:
+
+```bash
+GET           /api-docs              controllers.ApiHelpController.getResources
+GET           /api-docs/*path        controllers.ApiHelpController.getResource(path: String)
+```
+
+By default, the swagger api is available at http://localhost:9000/api-docs or `http :9000/api-docs` if you are using [httpie](https://httpie.org/).
+
 
 ## Scaffolding
 You can scaffold (quickly create basic working functionality which you then alter to fit your needs) using the __scaffold__

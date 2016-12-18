@@ -48,9 +48,8 @@ object SparkEnabler extends Enabler {
 object Template {
   def settings(): String =
     s"""
-       |val SparkVersion = "2.0.2"
-       |libraryDependencies += "org.apache.spark" %% "spark-core" % SparkVersion
-       |libraryDependencies += "org.apache.spark" %% "spark-sql" % SparkVersion
+       |libraryDependencies += "org.apache.spark" %% "spark-core" % "2.0.2"
+       |libraryDependencies += "org.apache.spark" %% "spark-sql" % "2.0.2"
     """.stripMargin
 
   def module(): String =

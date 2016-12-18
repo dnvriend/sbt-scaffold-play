@@ -26,29 +26,29 @@ final case class AkkaEnablerResult(setting: Path, config: Path) extends EnablerR
 
 object AkkaEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
-    settings <- createSettings(ctx.baseDir, Template.settings)
-    config <- createConfig(ctx.resourceDir, Template.config)
+    settings <- createSettings(ctx.baseDir, Template.settings(ctx))
+    config <- createConfig(ctx.resourceDir)
     _ <- addConfig(ctx.resourceDir)
   } yield AkkaEnablerResult(settings, config)
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
     FileUtils.writeFile(baseDir / "build-akka.sbt", content)
 
-  def createConfig(resourceDir: Path, content: String): Disjunction[String, Path] =
-    FileUtils.writeFile(resourceDir / "akka.conf", content)
+  def createConfig(resourceDir: Path): Disjunction[String, Path] =
+    FileUtils.writeFile(resourceDir / "akka.conf", Template.config)
 
   def addConfig(resourceDir: Path): Disjunction[String, Path] =
     FileUtils.appendToApplication(resourceDir, """include "akka"""")
 }
 
 object Template {
-  val settings: String =
-    """
-      |libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.4.12"
-      |libraryDependencies += "com.typesafe.akka" %% "akka-stream" % "2.4.12"
-      |libraryDependencies += "com.typesafe.akka" %% "akka-slf4j" % "2.4.12"
-      |libraryDependencies += "com.typesafe.akka" %% "akka-persistence" % "2.4.12"
-      |libraryDependencies += "com.typesafe.akka" %% "akka-persistence-query-experimental" % "2.4.12"
+  def settings(ctx: EnablerContext): String =
+    s"""
+      |libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "${ctx.akkaVersion}"
+      |libraryDependencies += "com.typesafe.akka" %% "akka-stream" % "${ctx.akkaVersion}"
+      |libraryDependencies += "com.typesafe.akka" %% "akka-slf4j" % "${ctx.akkaVersion}"
+      |libraryDependencies += "com.typesafe.akka" %% "akka-persistence" % "${ctx.akkaVersion}"
+      |libraryDependencies += "com.typesafe.akka" %% "akka-persistence-query-experimental" % "${ctx.akkaVersion}"
     """.stripMargin
 
   val config: String =

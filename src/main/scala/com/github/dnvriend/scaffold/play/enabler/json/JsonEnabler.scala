@@ -26,7 +26,7 @@ final case class JsonEnablerResult(settings: Path) extends EnablerResult
 
 object JsonEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
-    settings <- createSettings(ctx.baseDir, Template.settings())
+    settings <- createSettings(ctx.baseDir, Template.settings(ctx))
   } yield JsonEnablerResult(settings)
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
@@ -34,10 +34,10 @@ object JsonEnabler extends Enabler {
 }
 
 object Template {
-  def settings(): String =
+  def settings(ctx: EnablerContext): String =
     s"""
        |libraryDependencies += ws
-       |libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "2.14.0"
-       |libraryDependencies += "com.typesafe.play" %% "play-json" % "2.5.10"
+       |libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "${ctx.nscalaTimeVersion}"
+       |libraryDependencies += "com.typesafe.play" %% "play-json" % "${ctx.playJsonVersion}"
     """.stripMargin
 }

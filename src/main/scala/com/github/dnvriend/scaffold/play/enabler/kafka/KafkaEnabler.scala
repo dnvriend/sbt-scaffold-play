@@ -26,15 +26,15 @@ final case class KafkaEnablerResult(settings: Path, producerConfig: Path, consum
 
 object KafkaEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
-    settings <- createSettings(ctx.baseDir)
+    settings <- createSettings(ctx.baseDir, Template.settings(ctx))
     producerConfig <- createProducerConfig(ctx.resourceDir)
     consumerConfig <- createConsumerConfig(ctx.resourceDir)
     _ <- addProducerConfig(ctx.resourceDir)
     _ <- addConsumerConfig(ctx.resourceDir)
   } yield KafkaEnablerResult(settings, producerConfig, consumerConfig)
 
-  def createSettings(baseDir: Path): Disjunction[String, Path] =
-    FileUtils.writeFile(baseDir / "build-kafka.sbt", Template.settings)
+  def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
+    FileUtils.writeFile(baseDir / "build-kafka.sbt", content)
 
   def createProducerConfig(resourceDir: Path): Disjunction[String, Path] =
     FileUtils.writeFile(resourceDir / "kafka-producer.conf", Template.producerConfig)
@@ -50,9 +50,9 @@ object KafkaEnabler extends Enabler {
 }
 
 object Template {
-  val settings: String =
-    """
-      |libraryDependencies += "com.typesafe.akka" %% "akka-stream-kafka" % "0.13"
+  def settings(ctx: EnablerContext): String =
+    s"""
+      |libraryDependencies += "com.typesafe.akka" %% "akka-stream-kafka" % "${ctx.akkaStreamKafkaVersion}"
     """.stripMargin
 
   val producerConfig: String =

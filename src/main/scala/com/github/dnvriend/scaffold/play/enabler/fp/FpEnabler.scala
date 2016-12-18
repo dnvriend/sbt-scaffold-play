@@ -27,7 +27,7 @@ final case class FpEnablerResult(settings: Path) extends EnablerResult
 
 object FpEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
-    settings <- createSettings(ctx.baseDir, Template.settings())
+    settings <- createSettings(ctx.baseDir, Template.settings(ctx))
   } yield FpEnablerResult(settings)
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
@@ -35,10 +35,10 @@ object FpEnabler extends Enabler {
 }
 
 object Template {
-  def settings(): String =
+  def settings(ctx: EnablerContext): String =
     s"""
-       |libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.7"
-       |libraryDependencies += "com.chuusai" %% "shapeless" % "2.3.2"
-       |libraryDependencies += "org.typelevel" %% "scalaz-scalatest" % "1.1.0" % Test
+       |libraryDependencies += "org.scalaz" %% "scalaz-core" % "${ctx.scalazVersion}"
+       |libraryDependencies += "com.chuusai" %% "shapeless" % "${ctx.shapelessVersion}"
+       |libraryDependencies += "org.typelevel" %% "scalaz-scalatest" % "${ctx.scalazScalaTestversion}" % Test
     """.stripMargin
 }

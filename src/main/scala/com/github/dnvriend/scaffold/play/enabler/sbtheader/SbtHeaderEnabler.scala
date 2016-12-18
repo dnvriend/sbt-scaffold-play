@@ -29,7 +29,7 @@ object SbtHeaderEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
     authorName <- UserInput.readLine(DefaultParsers.any.*.map(_.mkString).examples(ctx.organization), "[sbt-header]: Enter your name > ")
     settings <- createSettings(ctx.baseDir, Template.settings(authorName))
-    plugin <- createPlugin(ctx.baseDir, Template.plugin())
+    plugin <- createPlugin(ctx.baseDir, Template.plugin(ctx))
   } yield SbtHeaderEnablerResult(settings, plugin)
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
@@ -55,8 +55,8 @@ object Template {
       |)
     """.stripMargin
 
-  def plugin(): String =
-    """
-      |addSbtPlugin("de.heikoseeberger" % "sbt-header" % "1.5.1")
+  def plugin(ctx: EnablerContext): String =
+    s"""
+      |addSbtPlugin("de.heikoseeberger" % "sbt-header" % "${ctx.sbtHeaderVersion}")
     """.stripMargin
 }

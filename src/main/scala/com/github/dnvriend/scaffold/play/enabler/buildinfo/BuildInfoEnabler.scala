@@ -26,8 +26,8 @@ final case class BuildInfoEnablerResult(settings: Path, plugin: Path) extends En
 
 object BuildInfoEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
-    settings <- createSettings(ctx.baseDir, Template.settings())
-    plugin <- createPlugin(ctx.baseDir, Template.plugin())
+    settings <- createSettings(ctx.baseDir, Template.settings)
+    plugin <- createPlugin(ctx.baseDir, Template.plugin(ctx))
   } yield BuildInfoEnablerResult(settings, plugin)
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
@@ -39,7 +39,7 @@ object BuildInfoEnabler extends Enabler {
 }
 
 object Template {
-  def settings(): String =
+  val settings: String =
     """
       |enablePlugins(BuildInfoPlugin)
       |
@@ -54,8 +54,8 @@ object Template {
       |buildInfoPackage := organization.value
     """.stripMargin
 
-  def plugin(): String =
-    """
-    |addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.6.1")
+  def plugin(ctx: EnablerContext): String =
+    s"""
+    |addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "${ctx.buildInfoVersion}")
   """.stripMargin
 }

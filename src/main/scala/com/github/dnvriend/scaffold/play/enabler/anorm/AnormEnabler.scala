@@ -26,8 +26,8 @@ final case class AnormEnablerResult(setting: Path, config: Path) extends Enabler
 
 object AnormEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, AnormEnablerResult] = for {
-    settings <- createSettings(ctx.baseDir, Template.settings())
-    config <- createConfig(ctx.resourceDir, Template.config())
+    settings <- createSettings(ctx.baseDir, Template.settings(ctx))
+    config <- createConfig(ctx.resourceDir, Template.config)
     _ <- FileUtils.createDirectory(ctx.resourceDir / "evolutions" / "default")
     _ <- addConfig(ctx.resourceDir)
   } yield AnormEnablerResult(settings, config)
@@ -43,19 +43,19 @@ object AnormEnabler extends Enabler {
 }
 
 object Template {
-  def settings(): String =
-    """
+  def settings(ctx: EnablerContext): String =
+    s"""
       |// database support
       |libraryDependencies += jdbc
       |libraryDependencies += evolutions
-      |libraryDependencies += "com.zaxxer" % "HikariCP" % "2.5.1"
-      |libraryDependencies += "com.typesafe.play" %% "anorm" % "2.5.2"
+      |libraryDependencies += "com.zaxxer" % "HikariCP" % "${ctx.hikariCpVersion}"
+      |libraryDependencies += "com.typesafe.play" %% "anorm" % "${ctx.anormVersion}"
       |// database driver
-      |libraryDependencies += "com.h2database" % "h2" % "1.4.193"
-      |libraryDependencies += "org.postgresql" % "postgresql" % "9.4.1212"
+      |libraryDependencies += "com.h2database" % "h2" % "${ctx.h2Version}"
+      |libraryDependencies += "org.postgresql" % "postgresql" % "${ctx.postgresVersion}"
     """.stripMargin
 
-  def config(): String =
+  val config: String =
     """
     |# H2 configuration
     |db.default.driver=org.h2.Driver

@@ -26,23 +26,23 @@ final case class CircuitBreakerEnablerResult(config: Path) extends EnablerResult
 
 object CircuitBreakerEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
-    config <- createConfig(ctx.resourceDir, Template.config())
+    config <- createConfig(ctx.resourceDir)
     createdModule <- createModule(ctx.srcDir, "play.modules.cb", "CircuitBreakerModule")
     _ <- addConfig(ctx.resourceDir)
   } yield CircuitBreakerEnablerResult(config)
 
-  def createConfig(resourceDir: Path, content: String): Disjunction[String, Path] =
-    FileUtils.writeFile(resourceDir / "circuit-breaker.conf", content)
+  def createConfig(resourceDir: Path): Disjunction[String, Path] =
+    FileUtils.writeFile(resourceDir / "circuit-breaker.conf", Template.config)
 
   def addConfig(resourceDir: Path): Disjunction[String, Path] =
     FileUtils.appendToApplication(resourceDir, """include "circuit-breaker"""")
 
   def createModule(srcDir: Path, packageName: String, className: String): Disjunction[String, Path] =
-    FileUtils.createClass(srcDir, packageName, className, Template.module())
+    FileUtils.createClass(srcDir, packageName, className, Template.module)
 }
 
 object Template {
-  def module(): String =
+  val module: String =
     """
       |package play.modules.cb
       |
@@ -66,7 +66,7 @@ object Template {
       |}
     """.stripMargin
 
-  def config(): String =
+  val config: String =
     """
       |play.modules.enabled += "play.modules.cb.CircuitBreakerModule"
     """.stripMargin
