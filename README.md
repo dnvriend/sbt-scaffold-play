@@ -808,6 +808,9 @@ The scaffold creates the following structure (package name will be different on 
 ```
 
 ## Releases
+- v0.0.3 (2016-12-18)
+  - Configurable library versions
+
 - v0.0.2 (2016-12-18)
   - scaffolds: PingController, BuildInfoController, HealthController
 
