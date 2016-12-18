@@ -185,7 +185,7 @@ The scaffold creates the following structure (package name will be different on 
         └── application.conf
 ```
 
-### PingController (not yet released)
+### PingController
 Creates a ping REST endpoint with resource `/api/ping` with `swagger` annotations, with endpoint added to `routes` file,
 so you can directly call the endpoint after scaffolding.
 
@@ -209,7 +209,7 @@ The scaffold creates the following structure (package name will be different on 
 │                           └── PingController.scala
 ```
 
-### BuildInfoController (not yet released)
+### BuildInfoController
 Creates a ping REST endpoint with resource `/api/info` with `swagger` annotations, with endpoint added to `routes` file,
 so you can directly call the endpoint after scaffolding.
 
@@ -232,7 +232,7 @@ The scaffold creates the following structure (package name will be different on 
 │                   │       └── BuildInfoController.scala
 ```
 
-### HealthController (not yet released)
+### HealthController
 Creates a health REST endpoint with resource `/api/health` with `swagger` annotations, with endpoint added to `routes` file,
 so you can directly call the endpoint after scaffolding.
 
@@ -259,5 +259,8 @@ The scaffold creates the following structure (package name will be different on 
 ```
 
 ## Releases
+- v0.0.2 (2016-12-18)
+  - scaffolds: PingController, BuildInfoController, HealthController
+
 - v0.0.1 (2016-12-18)
   - Initial release
