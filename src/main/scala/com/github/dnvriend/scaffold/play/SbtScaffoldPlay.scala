@@ -37,6 +37,7 @@ import com.github.dnvriend.scaffold.play.scaffolds.buildinfo.BuildInfoController
 import com.github.dnvriend.scaffold.play.scaffolds.controller.ControllerScaffold
 import com.github.dnvriend.scaffold.play.scaffolds.crudcontroller.CrudControllerScaffold
 import com.github.dnvriend.scaffold.play.scaffolds.dto.DtoScaffold
+import com.github.dnvriend.scaffold.play.scaffolds.health.HealthControllerScaffold
 import com.github.dnvriend.scaffold.play.scaffolds.pingcontroller.PingControllerScaffold
 import com.github.dnvriend.scaffold.play.scaffolds.wsclient.WsClientScaffold
 import sbt.Keys._
@@ -155,6 +156,8 @@ object SbtScaffoldPlay extends AutoPlugin {
           new CrudControllerScaffold().execute(ctx)
         case PingControllerChoice =>
           new PingControllerScaffold().execute(ctx)
+        case HealthControllerChoice =>
+          new HealthControllerScaffold().execute(ctx)
         case WsClientChoice =>
           new WsClientScaffold().execute(ctx)
         case DtoChoice =>

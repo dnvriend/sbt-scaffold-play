@@ -57,7 +57,7 @@ The following features can be enabled:
 - spark
 - swagger
 
-You can also type `all` to get scalariform, sbtheader, buildinfo, fp, json, loggng, anorm, akka and swagger.
+You can also type `all` to get scalariform, sbtheader, buildinfo, fp, json, loggng, anorm, akka, circuitbreaker and swagger.
 
 Enabling all features will add the following structure to `play-seed`:
 
@@ -230,6 +230,32 @@ The scaffold creates the following structure (package name will be different on 
 │                   ├── buildinfo
 │                   │   └── controller
 │                   │       └── BuildInfoController.scala
+```
+
+### HealthController (not yet released)
+Creates a health REST endpoint with resource `/api/health` with `swagger` annotations, with endpoint added to `routes` file,
+so you can directly call the endpoint after scaffolding.
+
+```bash
+[play-seed] $ scaffold health
+[health-controller] Enter component name > health
+[info] Scaffold complete
+```
+
+The scaffold creates the following structure (package name will be different on your project):
+
+
+```bash
+├── app
+│   ├── com
+│   │   └── github
+│   │       └── dnvriend
+│   │           └── component
+│   │               ├── health
+│   │               │   ├── controller
+│   │               │   │   └── HealthController.scala
+│   │               │   └── util
+│   │               │       └── DisjunctionOps.scala
 ```
 
 ## Releases

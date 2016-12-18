@@ -50,6 +50,7 @@ object Parsers {
   case object ControllerChoice extends ScaffoldChoice
   case object CrudControllerChoice extends ScaffoldChoice
   case object PingControllerChoice extends ScaffoldChoice
+  case object HealthControllerChoice extends ScaffoldChoice
   case object WsClientChoice extends ScaffoldChoice
   case object DtoChoice extends ScaffoldChoice
 
@@ -90,11 +91,12 @@ object Parsers {
     val buildinfo: Parser[ScaffoldChoice] = ("buildinfo" | "buildinfo-controller") ^^^ BuildInfoControllerChoice
     val controller: Parser[ScaffoldChoice] = "controller" ^^^ ControllerChoice
     val crudController: Parser[ScaffoldChoice] = ("crud" | "crud-controller") ^^^ CrudControllerChoice
-    val pingcontroller: Parser[ScaffoldChoice] = ("ping" | "pingcontroller") ^^^ PingControllerChoice
+    val pingcontroller: Parser[ScaffoldChoice] = ("ping" | "ping-controller") ^^^ PingControllerChoice
+    val healthcontroller: Parser[ScaffoldChoice] = ("health" | "health-controller") ^^^ HealthControllerChoice
     val wsclient: Parser[ScaffoldChoice] = "wsclient" ^^^ WsClientChoice
     val dto: Parser[ScaffoldChoice] = "dto" ^^^ DtoChoice
 
-    DefaultParsers.token(Space ~> (buildinfo | controller | crudController | pingcontroller | wsclient | dto))
+    DefaultParsers.token(Space ~> (buildinfo | controller | crudController | healthcontroller | pingcontroller | wsclient | dto))
   }
 
   def packageParser(defaults: String*): Parser[String] = StringBasic.examples(defaults: _*)
