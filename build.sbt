@@ -2,7 +2,7 @@ name := "sbt-scaffold-play"
 
 organization := "com.github.dnvriend"
 
-version := "0.0.3-SNAPSHOT"
+version := "0.0.3"
 
 scalaVersion := "2.10.6"
 
