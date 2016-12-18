@@ -22,6 +22,6 @@ import sbt.complete.DefaultParsers
 import scalaz._
 
 object ComponentNameUserInput {
-  def askUser(context: String): Disjunction[String, String] =
-    UserInput.readLine(DefaultParsers.StringBasic, s"[$context] Enter component name > ")
+  def askUser(context: String, defaultPackageName: String = ""): Disjunction[String, String] =
+    UserInput.readLine(DefaultParsers.StringBasic.examples(defaultPackageName), s"[$context] Enter component name > ")
 }

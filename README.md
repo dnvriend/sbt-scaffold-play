@@ -185,6 +185,30 @@ The scaffold creates the following structure (package name will be different on 
         └── application.conf
 ```
 
+### PingController (not yet released)
+Creates a ping REST endpoint with resource `/api/ping` with `swagger` annotations, with endpoint added to `routes` file,
+so you can directly call the endpoint after scaffolding.
+
+```bash
+[play-seed] $ scaffold pingcontroller
+[ping-controller] Enter component name > ping
+[info] Scaffold complete
+```
+
+The scaffold creates the following structure (package name will be different on your project):
+
+```bash
+.
+├── app
+│   └── com
+│       └── github
+│           └── dnvriend
+│               └── component
+│                   └── ping
+│                       └── controller
+│                           └── PingController.scala
+```
+
 ## Releases
 - v0.0.1 (2016-12-18)
   - Initial release
