@@ -26,16 +26,10 @@ import com.github.dnvriend.scaffold.play.enabler.sbtheader.SbtHeaderEnabler
 import com.github.dnvriend.scaffold.play.enabler.scalariform.ScalariformEnabler
 import com.github.dnvriend.scaffold.play.enabler.swagger.SwaggerEnabler
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
-import com.github.dnvriend.scaffold.play.util.PathFormat
-import play.api.libs.json.{ Format, Json }
 
 import scalaz.Disjunction
 
-object EveryFeatureEnablerResult extends PathFormat {
-  implicit val format: Format[EveryFeatureEnablerResult] = Json.format[EveryFeatureEnablerResult]
-}
-
-final case class EveryFeatureEnablerResult(scalariform: EnablerResult, sbtHeader: EnablerResult, buildInfo: EnablerResult, fp: EnablerResult, json: EnablerResult, logging: EnablerResult, akka: EnablerResult, swagger: EnablerResult, circuitBreaker: EnablerResult) extends EnablerResult
+final case class EveryFeatureEnablerResult(xs: List[EnablerResult]) extends EnablerResult
 
 object EveryFeatureEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
@@ -48,5 +42,5 @@ object EveryFeatureEnabler extends Enabler {
     akka <- AkkaEnabler.execute(ctx)
     swagger <- SwaggerEnabler.execute(ctx)
     circuitBreaker <- CircuitBreakerEnabler.execute(ctx)
-  } yield EveryFeatureEnablerResult(scalariform, sbtHeader, buildInfo, fp, json, logging, akka, swagger, circuitBreaker)
+  } yield EveryFeatureEnablerResult(List(scalariform, sbtHeader, buildInfo, fp, json, logging, akka, swagger, circuitBreaker))
 }

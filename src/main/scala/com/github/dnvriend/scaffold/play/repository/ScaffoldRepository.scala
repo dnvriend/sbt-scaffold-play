@@ -18,6 +18,7 @@ package com.github.dnvriend.scaffold.play.repository
 
 import ammonite.ops._
 import com.github.dnvriend.scaffold.play.enabler.EnablerResult
+import com.github.dnvriend.scaffold.play.enabler.all.EveryFeatureEnablerResult
 import com.github.dnvriend.scaffold.play.parsers.Parsers
 import com.github.dnvriend.scaffold.play.parsers.Parsers._
 import com.github.dnvriend.scaffold.play.util.UserInput
@@ -56,10 +57,18 @@ object ScaffoldRepository {
   def saveEnabled(scaffoldStateFile: Path, enablerResult: EnablerResult): Disjunction[String, Path] = for {
     _ <- checkExistsElseCreateFile(scaffoldStateFile)
     path <- Disjunction.fromTryCatchNonFatal {
-      write.append(scaffoldStateFile, Json.toJson(enablerResult).toString)
+      enablerResult match {
+        case EveryFeatureEnablerResult(xs) => xs.foreach(saveEnabledRecord(scaffoldStateFile, _))
+        case result                        => saveEnabledRecord(scaffoldStateFile, result)
+      }
       scaffoldStateFile
     }.leftMap(_.toString)
   } yield path
+
+  private def saveEnabledRecord(scaffoldStateFile: Path, enablerResult: EnablerResult) = {
+    write.append(scaffoldStateFile, Json.toJson(enablerResult).toString + "\n")
+    scaffoldStateFile
+  }
 
   def getEnabled(scaffoldStateFile: Path): List[EnablerResult] = {
     checkExistsElseCreateFile(scaffoldStateFile)

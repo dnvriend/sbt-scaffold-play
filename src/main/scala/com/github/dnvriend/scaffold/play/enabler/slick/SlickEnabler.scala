@@ -42,6 +42,7 @@ object SlickEnabler extends Enabler {
   } yield SlickEnablerResult(settings, config, createdModule)
 
   def check(enabled: List[EnablerResult]): Disjunction[String, List[Unit]] = enabled.collect {
+    case x: SlickEnablerResult => "Slick has already been enabled".left[Unit]
     case x: AnormEnablerResult => "Anorm has already been enabled".left[Unit]
     case _                     => ().right[String]
   }.sequenceU
