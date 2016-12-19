@@ -16,11 +16,16 @@
 
 package com.github.dnvriend.scaffold.play.enabler.spark
 
-import ammonite.ops._
+import ammonite.ops.Path
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
-import com.github.dnvriend.scaffold.play.util.FileUtils
+import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
+import play.api.libs.json.{ Format, Json }
 
 import scalaz.Disjunction
+
+object SparkEnablerResult extends PathFormat {
+  implicit val format: Format[SparkEnablerResult] = Json.format[SparkEnablerResult]
+}
 
 final case class SparkEnablerResult(settings: Path, config: Path, createdModule: Path) extends EnablerResult
 

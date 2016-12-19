@@ -61,7 +61,7 @@ The following features can be enabled:
 - spark
 - swagger
 
-You can also type `all` to get scalariform, sbtheader, buildinfo, fp, json, loggng, anorm, akka, circuitbreaker and swagger.
+You can also type `all` to get scalariform, sbtheader, buildinfo, fp, json, logback, akka, circuitbreaker and swagger.
 
 Enabling all features will add the following structure to `play-seed`:
 

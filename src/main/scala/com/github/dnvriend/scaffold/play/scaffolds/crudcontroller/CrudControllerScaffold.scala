@@ -27,45 +27,47 @@ import scalaz._
 final case class CrudControllerScaffoldResult(componentName: String, entity: EntityUserInput, componentPackage: String, createdEntity: Path, createdRepository: Path, createdController: Path, createdDisjunctionOps: Path, createdValidationOps: Path, createdValidator: Path, createdEvolution: Path, alteredRoutes: Path) extends ScaffoldResult
 
 class CrudControllerScaffold extends Scaffold {
-  override def execute(ctx: ScaffoldContext): Disjunction[String, ScaffoldResult] = for {
-    componentName <- ComponentNameUserInput.askUser("crud-controller")
-    resourceName <- ResourceNameUserInput.askUser("crud-controller", componentName)
-    entityUserInput <- EntityUserInput.askUser("DefaultEntity")
-    componentPackage = s"${ctx.organization}.component.$componentName"
-    createdEntity <- createEntity(ctx.srcDir, componentPackage, entityUserInput)
-    createdRepository <- createRepository(ctx.srcDir, componentPackage, entityUserInput)
-    createdController <- createController(ctx.srcDir, componentPackage, entityUserInput, resourceName)
-    createdDisjunctionOps <- createDisjunctionOps(ctx.srcDir, componentPackage, entityUserInput)
-    createdValidationOps <- createValidationOps(ctx.srcDir, componentPackage, entityUserInput)
-    createdValidator <- createValidator(ctx.srcDir, componentPackage, entityUserInput)
-    maxEvolution <- FileUtils.maxEvolution(ctx.resourceDir)
-    createdEvolution <- createEvolution(ctx.resourceDir / "evolutions" / "default", maxEvolution, Template.evolution(entityUserInput))
-    alteredRoutes <- addRoutes(ctx.resourceDir, resourceName, componentPackage, entityUserInput)
-  } yield CrudControllerScaffoldResult(componentName, entityUserInput, componentPackage, createdEntity, createdRepository, createdController, createdDisjunctionOps, createdValidationOps, createdValidator, createdEvolution, alteredRoutes)
 
-  def createEntity(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
-    FileUtils.createClass(srcDir, componentPackage, entity.className, Template.entity(componentPackage, entity))
-
-  def createRepository(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
-    FileUtils.createClass(srcDir, s"$componentPackage.repository", s"${entity.className}Repository", Template.repository(componentPackage, entity))
-
-  def createController(srcDir: Path, componentPackage: String, entity: EntityUserInput, resourceName: String): Disjunction[String, Path] =
-    FileUtils.createClass(srcDir, s"$componentPackage.controller", s"${entity.className}Controller", Template.controller(componentPackage, entity, resourceName))
-
-  def createDisjunctionOps(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
-    FileUtils.createClass(srcDir, s"$componentPackage.util", "DisjunctionOps", Template.disjunctionOps(componentPackage))
-
-  def createValidationOps(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
-    FileUtils.createClass(srcDir, s"$componentPackage.util", "ValidationOps", Template.validationOps(componentPackage))
-
-  def createValidator(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
-    FileUtils.createClass(srcDir, s"$componentPackage.util", "Validator", Template.validator(componentPackage))
-
-  def createEvolution(defaultEvolutionDir: Path, maxEvolution: Int, content: String): Disjunction[String, Path] =
-    FileUtils.writeFile(defaultEvolutionDir / s"${maxEvolution + 1}.sql", content)
-
-  def addRoutes(resourceDir: Path, resourceName: String, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
-    FileUtils.appendToRoutes(resourceDir, Template.routes(componentPackage, resourceName, entity))
+  //  override def execute(ctx: ScaffoldContext): Disjunction[String, ScaffoldResult] = for {
+  //    componentName <- ComponentNameUserInput.askUser("crud-controller")
+  //    resourceName <- ResourceNameUserInput.askUser("crud-controller", componentName)
+  //    entityUserInput <- EntityUserInput.askUser("DefaultEntity")
+  //    componentPackage = s"${ctx.organization}.component.$componentName"
+  //    createdEntity <- createEntity(ctx.srcDir, componentPackage, entityUserInput)
+  //    createdRepository <- createRepository(ctx.srcDir, componentPackage, entityUserInput)
+  //    createdController <- createController(ctx.srcDir, componentPackage, entityUserInput, resourceName)
+  //    createdDisjunctionOps <- createDisjunctionOps(ctx.srcDir, componentPackage, entityUserInput)
+  //    createdValidationOps <- createValidationOps(ctx.srcDir, componentPackage, entityUserInput)
+  //    createdValidator <- createValidator(ctx.srcDir, componentPackage, entityUserInput)
+  //    maxEvolution <- FileUtils.maxEvolution(ctx.resourceDir)
+  //    createdEvolution <- createEvolution(ctx.resourceDir / "evolutions" / "default", maxEvolution, Template.evolution(entityUserInput))
+  //    alteredRoutes <- addRoutes(ctx.resourceDir, resourceName, componentPackage, entityUserInput)
+  //  } yield CrudControllerScaffoldResult(componentName, entityUserInput, componentPackage, createdEntity, createdRepository, createdController, createdDisjunctionOps, createdValidationOps, createdValidator, createdEvolution, alteredRoutes)
+  //
+  //  def createEntity(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
+  //    FileUtils.createClass(srcDir, componentPackage, entity.className, Template.entity(componentPackage, entity))
+  //
+  //  def createRepository(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
+  //    FileUtils.createClass(srcDir, s"$componentPackage.repository", s"${entity.className}Repository", Template.repository(componentPackage, entity))
+  //
+  //  def createController(srcDir: Path, componentPackage: String, entity: EntityUserInput, resourceName: String): Disjunction[String, Path] =
+  //    FileUtils.createClass(srcDir, s"$componentPackage.controller", s"${entity.className}Controller", Template.controller(componentPackage, entity, resourceName))
+  //
+  //  def createDisjunctionOps(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
+  //    FileUtils.createClass(srcDir, s"$componentPackage.util", "DisjunctionOps", Template.disjunctionOps(componentPackage))
+  //
+  //  def createValidationOps(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
+  //    FileUtils.createClass(srcDir, s"$componentPackage.util", "ValidationOps", Template.validationOps(componentPackage))
+  //
+  //  def createValidator(srcDir: Path, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
+  //    FileUtils.createClass(srcDir, s"$componentPackage.util", "Validator", Template.validator(componentPackage))
+  //
+  //  def createEvolution(defaultEvolutionDir: Path, maxEvolution: Int, content: String): Disjunction[String, Path] =
+  //    FileUtils.writeFile(defaultEvolutionDir / s"${maxEvolution + 1}.sql", content)
+  //
+  //  def addRoutes(resourceDir: Path, resourceName: String, componentPackage: String, entity: EntityUserInput): Disjunction[String, Path] =
+  //    FileUtils.appendToRoutes(resourceDir, Template.routes(componentPackage, resourceName, entity))
+  override def execute(ctx: ScaffoldContext): Disjunction[String, ScaffoldResult] = ???
 }
 
 object Template {
@@ -122,6 +124,7 @@ object Template {
     val repoType = s"${entity.className}Repository"
     val entityType: String = entity.className
     val entityName: String = entity.className.uncapitalize
+    val executionContextName: String = ""
 
     s"""package $componentPackage.controller
        |
@@ -129,172 +132,186 @@ object Template {
        |
        |import $componentPackage.$entityType
        |import $componentPackage.repository.$repoType
-       |import $componentPackage.util.DisjunctionOps._
-       |import $componentPackage.util.ValidationOps._
-       |import $componentPackage.util.Validator
        |import io.swagger.annotations._
        |import play.api.mvc._
        |
        |import scalaz._
        |import Scalaz._
        |
-       |@Api(value = "/api/$resourceName")
-       |class $controllerType @Inject() ($repo: $repoType) extends Controller {
+       |import javax.inject.Inject
        |
-       |  @ApiOperation(value = "Get all $entityName", response = classOf[$entityType], httpMethod = "GET")
-       |  @ApiResponses(Array(new ApiResponse(code = 200, message = "Return a list of $entityName")))
-       |  def getAll(@ApiParam(value = "Fetch number of items") limit: Int, @ApiParam(value = "Fetch from offset") offset: Int): Action[AnyContent] = Action(for {
-       |    (limit, offset) <- (Validator.intValidator("limit", limit) tuple Validator.intValidator("offset", offset)).toDisjunction
-       |    xs <- tryCatch($repo.getAll(limit, offset))
-       |  } yield xs)
+       |import com.github.dnvriend.component.address.Address
+       |import com.github.dnvriend.component.address.repository.AddressRepository
+       |import io.swagger.annotations._
+       |import play.api.mvc._
+       |import play.modules.slick.SlickExecutionContext
        |
-       |  @ApiOperation(value = "Get $entityName by id", response = classOf[$entityType], httpMethod = "GET")
+       |import scalaz.Scalaz._
+       |
+       |@Api(value = "/api/address")
+       |class AddressController @Inject() ($repo: $repoType)(implicit ec: $executionContextName) extends Controller {
+       |
+       |  @ApiOperation(value = "Get all address", response = classOf[Address], httpMethod = "GET")
+       |  @ApiResponses(Array(new ApiResponse(code = 200, message = "Return a list of address")))
+       |  def getAll(@ApiParam(value = "Fetch number of items") limit: Int, @ApiParam(value = "Fetch from offset") offset: Int): Action[AnyContent] =
+       |    Action.async((for {
+       |      (limit, offset) <- (intValidator("limit", limit) tuple intValidator("offset", offset)).liftEither
+       |      xs <- addressRepository.getAll(limit, offset).liftEither
+       |    } yield xs).run)
+       |
+       |  @ApiOperation(value = "Get address by id", response = classOf[Address], httpMethod = "GET")
        |  @ApiResponses(Array(
-       |    new ApiResponse(code = 200, message = "Returns $entityName when found"),
+       |    new ApiResponse(code = 200, message = "Returns address when found"),
        |    new ApiResponse(code = 404, message = "Returns 404 when not found")
        |  ))
-       |  def getById(@ApiParam(value = "id of $entityName") id: Long): Action[AnyContent] = Action(for {
-       |    id <- Validator.idValidator("id", id).toDisjunction
-       |    $entityName <- tryCatch($repo.getById(id))
-       |  } yield $entityName)
+       |  def getById(@ApiParam(value = "id of address") id: Long): Action[AnyContent] = Action.async((for {
+       |    id <- idValidator("id", id).liftEither
+       |    address <- addressRepository.getById(id).liftEither
+       |  } yield address).run)
        |
-       |  @ApiOperation(value = "Save $entityName", response = classOf[$entityType], httpMethod = "POST")
-       |  @ApiResponses(Array(new ApiResponse(code = 200, message = "Returns the stored $entityName with id")))
-       |  def save(): Action[AnyContent] = Action(request => for {
-       |    $entityName <- request.toValidationNel[$entityType].toDisjunction
-       |    id <- tryCatch($repo.save(${entity.renderEntityNameField}))
-       |  } yield $entityName.copy(id = id))
+       |  @ApiOperation(value = "Save address", response = classOf[Address], httpMethod = "POST")
+       |  @ApiResponses(Array(new ApiResponse(code = 200, message = "Returns the stored address with id")))
+       |  def save(): Action[AnyContent] = Action.async(request => (for {
+       |    address <- request.toValidationNel[Address].liftEither
+       |    id <- addressRepository.save(address.street, address.zipcode, address.housenr).liftEither
+       |  } yield address.copy(id = Option(id))).run)
        |
-       |  @ApiOperation(value = "Update $entityName by id", response = classOf[$entityType], httpMethod = "PUT")
-       |  @ApiResponses(Array(new ApiResponse(code = 200, message = "Returns the updated $entityName")))
-       |  def updateById(@ApiParam(value = "id of $entityName") id: Long): Action[AnyContent] = Action(request => for {
-       |    id <- Validator.idValidator("id", id).toDisjunction
-       |    $entityName <- request.toValidationNel[$entityType].toDisjunction
-       |    _ <- tryCatch($repo.updateById(id, ${entity.renderEntityNameField}))
-       |  } yield $entityName)
+       |  @ApiOperation(value = "Update address by id", response = classOf[Address], httpMethod = "PUT")
+       |  @ApiResponses(Array(new ApiResponse(code = 200, message = "Returns the updated address")))
+       |  def updateById(@ApiParam(value = "id of address") id: Long): Action[AnyContent] = Action.async(request => (for {
+       |    id <- idValidator("id", id).liftEither
+       |    address <- request.toValidationNel[Address].liftEither
+       |    _ <- addressRepository.updateById(id, address.street, address.zipcode, address.housenr).liftEither
+       |  } yield address).run)
        |
-       |  @ApiOperation(value = "Delete $entityName by id", httpMethod = "DELETE")
+       |  @ApiOperation(value = "Delete address by id", httpMethod = "DELETE")
        |  @ApiResponses(Array(new ApiResponse(code = 204, message = "Returns no content")))
-       |  def deleteById(@ApiParam(value = "id of $entityName") id: Long): Action[AnyContent] = Action(for {
-       |    id <- Validator.idValidator("id", id).toDisjunction
-       |    _ <- tryCatch($repo.deleteById(id))
-       |  } yield ())
+       |  def deleteById(@ApiParam(value = "id of address") id: Long): Action[AnyContent] = Action.async((for {
+       |    id <- idValidator("id", id).liftEither
+       |    _ <- addressRepository.deleteById(id).liftEither
+       |  } yield ()).run)
        |}
   """.stripMargin
   }
 
-  def disjunctionOps(componentPackage: String): String =
+  def packageObject(componentPackage: String): String =
     s"""
-    |package $componentPackage.util
+    |package $componentPackage
     |
-    |import play.api.libs.json.{ Format, Json }
-    |import play.api.mvc.{ Result, Results }
+    |import play.api.data.validation.ValidationError
+    |import play.api.libs.json.{Format, JsPath, JsResult, Json}
+    |import play.api.mvc.{AnyContent, Request, Result, Results}
     |
+    |import scala.concurrent.{ExecutionContext, Future}
     |import scala.language.implicitConversions
+    |import scalaz.Scalaz._
     |import scalaz._
     |
-    |object DisjunctionOps extends Results {
+    |package object controller extends Results {
+    |  implicit class FutureImplicits[A](val that: Future[A]) extends AnyVal {
+    |    def liftEither(implicit ec: ExecutionContext): DisjunctionT[Future, String, A] = EitherT(that.map(_.right[String]))
+    |  }
     |  def tryCatch[A](block: => A): Disjunction[String, A] =
     |    Disjunction.fromTryCatchNonFatal(block).leftMap(_.toString)
     |
-    |  implicit def ToActionUnit(maybe: Disjunction[String, Unit]): Result =
-    |    maybe.map(value => NoContent)
+    |  implicit class FutureDisjunctionOps[A](val that: Future[Disjunction[String, A]]) extends AnyVal {
+    |    def liftEither: DisjunctionT[Future, String, A] = EitherT(that)
+    |  }
+    |
+    |  implicit def FutureUnitAction(that: Future[Disjunction[String, Unit]])(implicit ec: ExecutionContext): Future[Result] =
+    |    that.map(ToActionUnit)
+    |
+    |  implicit def FutureAnyAction[A: Format](that: Future[Disjunction[String, A]])(implicit ec: ExecutionContext): Future[Result] =
+    |    that.map(a => ToActionA(a))
+    |
+    |  implicit def FutureMaybeAction[A: Format](that: Future[Disjunction[String, Option[A]]])(implicit ec: ExecutionContext): Future[Result] =
+    |    that.map(maybe => ToActionMaybe(maybe))
+    |
+    |  implicit def FutureListAction[A: Format](that: Future[Disjunction[String, List[A]]])(implicit ec: ExecutionContext): Future[Result] =
+    |    that.map(xs => ToActionList(xs))
+    |
+    |  implicit def FutureVectorAction[A: Format](that: Future[Disjunction[String, Vector[A]]])(implicit ec: ExecutionContext): Future[Result] =
+    |    that.map(xs => ToActionVector(xs))
+    |
+    |  implicit def ToActionUnit(unit: Disjunction[String, Unit]): Result =
+    |    unit.map(value => NoContent)
     |      .leftMap(messages => BadRequest(messages)) match {
-    |        case DRight(result) => result
-    |        case DLeft(result)  => result
-    |      }
+    |      case DRight(result) => result
+    |      case DLeft(result)  => result
+    |    }
     |
     |  implicit def ToActionMaybe[A: Format](maybe: Disjunction[String, Option[A]]): Result =
     |    maybe
     |      .map(maybeValue => maybeValue.map(value => Ok(Json.toJson(value))).getOrElse(NotFound))
     |      .leftMap(messages => BadRequest(messages)) match {
-    |        case DRight(result) => result
-    |        case DLeft(result)  => result
-    |      }
+    |      case DRight(result) => result
+    |      case DLeft(result)  => result
+    |    }
     |
-    |  implicit def ToActionList[A: Format](maybe: Disjunction[String, List[A]]): Result =
-    |    maybe.map(xs => Ok(Json.toJson(xs)))
-    |      .leftMap(messages => BadRequest(messages)) match {
-    |        case DRight(result) => result
-    |        case DLeft(result)  => result
-    |      }
+    |  implicit def ToActionVector[A: Format](xs: Disjunction[String, Vector[A]]): Result =
+    |    ToActionList(xs.map(_.toList))
     |
-    |  implicit def ToActionAny[A: Format](maybe: Disjunction[String, A]): Result =
-    |    maybe.map(value => Ok(Json.toJson(value)))
+    |  implicit def ToActionList[A: Format](xs: Disjunction[String, List[A]]): Result =
+    |    xs.map(xs => Ok(Json.toJson(xs)))
     |      .leftMap(messages => BadRequest(messages)) match {
-    |        case DRight(result) => result
-    |        case DLeft(result)  => result
-    |      }
+    |      case DRight(result) => result
+    |      case DLeft(result)  => result
+    |    }
+    |
+    |  implicit def ToActionA[A: Format](a: Disjunction[String, A]): Result =
+    |    a.map(value => Ok(Json.toJson(value)))
+    |      .leftMap(messages => BadRequest(messages)) match {
+    |      case DRight(result) => result
+    |      case DLeft(result)  => result
+    |    }
+    |
+    |  implicit class ValImplicits[A](val that: ValidationNel[String, A]) extends AnyVal {
+    |    def toDisjunction: Disjunction[String, A] = that.disjunction.leftMap(_.toList.mkString(","))
+    |    def toDisjunctionF: Future[Disjunction[String, A]] = Future.successful(that.toDisjunction)
+    |    def liftEither: DisjunctionT[Future, String, A] = EitherT(toDisjunctionF)
+    |    def toDisjunctionNel: Disjunction[NonEmptyList[String], A] = that.disjunction
+    |  }
+    |
+    |  def jsResultToValidationNel[A](jsResult: JsResult[A]): ValidationNel[String, A] = {
+    |    def validationToString(path: JsPath, xs: Seq[ValidationError]): String = {
+    |      val pathString = path.toString
+    |      val errorsString = xs.flatMap(_.messages).mkString(",")
+    |      s"'$$pathString', '$$errorsString'"
+    |    }
+    |    def validationErrorsToString(xs: Seq[(JsPath, Seq[ValidationError])]): String =
+    |      xs.map((validationToString _).tupled).mkString(",")
+    |
+    |    jsResult.asEither
+    |      .validation
+    |      .leftMap(validationErrorsToString)
+    |      .leftMap(_.wrapNel)
+    |  }
+    |
+    |  implicit class JsResultOps[A](val that: JsResult[A]) extends AnyVal {
+    |    def toValidationNel: ValidationNel[String, A] =
+    |      jsResultToValidationNel(that)
+    |  }
+    |
+    |  implicit class OptionJsResultOps[A](val that: Option[JsResult[A]]) extends AnyVal {
+    |    def toValidationNel: ValidationNel[String, A] =
+    |      that.map(jsResultToValidationNel).getOrElse("No JsResult to validate".failureNel[A])
+    |  }
+    |
+    |  implicit class RequestOps(val that: Request[AnyContent]) extends AnyVal {
+    |    def toValidationNel[A: Format]: ValidationNel[String, A] =
+    |      that.body.asJson.map(_.validate[A]).toValidationNel
+    |  }
+    |
+    |  def intValidator(fieldName: String, value: Int): ValidationNel[String, Int] =
+    |    Option(value).filter(_ >= 0).toSuccessNel(s"Field '$$fieldName' with value '$$value' must be gte zero")
+    |
+    |  def idValidator(fieldName: String, value: Long): ValidationNel[String, Long] =
+    |    Option(value).filter(_ >= 0).toSuccessNel(s"Field '$$fieldName' with value '$$value' must be gte zero")
+    |
+    |  def stringValidator(fieldName: String, value: String): ValidationNel[String, String] =
+    |    Option(value).map(_.trim).filterNot(_.isEmpty).toSuccessNel(s"Field '$$fieldName' with value '$$value' must not be empty")
     |}
   """.stripMargin
-
-  def validationOps(componentPackage: String): String =
-    s"""
-       |package $componentPackage.util
-       |
-       |import play.api.data.validation.ValidationError
-       |import play.api.libs.json.{ Format, JsPath, JsResult }
-       |import play.api.mvc.{ AnyContent, Request }
-       |
-       |import scalaz._
-       |import Scalaz._
-       |
-       |object ValidationOps {
-       |  implicit class ValImplicits[A](val that: ValidationNel[String, A]) extends AnyVal {
-       |    def toDisjunction: Disjunction[String, A] = that.disjunction.leftMap(_.toList.mkString(","))
-       |    def toDisjunctionNel: Disjunction[NonEmptyList[String], A] = that.disjunction
-       |  }
-       |
-       |  def jsResultToValidationNel[A](jsResult: JsResult[A]): ValidationNel[String, A] = {
-       |    def validationToString(path: JsPath, xs: Seq[ValidationError]): String = {
-       |      val pathString = path.toString
-       |      val errorsString = xs.flatMap(_.messages).mkString(",")
-       |      s"'$$pathString', '$$errorsString'"
-       |    }
-       |    def validationErrorsToString(xs: Seq[(JsPath, Seq[ValidationError])]): String =
-       |      xs.map((validationToString _).tupled).mkString(",")
-       |
-       |    jsResult.asEither
-       |      .validation
-       |      .leftMap(validationErrorsToString)
-       |      .leftMap(_.wrapNel)
-       |  }
-       |
-       |  implicit class JsResultOps[A](val that: JsResult[A]) extends AnyVal {
-       |    def toValidationNel: ValidationNel[String, A] =
-       |      jsResultToValidationNel(that)
-       |  }
-       |
-       |  implicit class OptionJsResultOps[A](val that: Option[JsResult[A]]) extends AnyVal {
-       |    def toValidationNel: ValidationNel[String, A] =
-       |      that.map(jsResultToValidationNel).getOrElse("No JsResult to validate".failureNel[A])
-       |  }
-       |
-       |  implicit class RequestOps(val that: Request[AnyContent]) extends AnyVal {
-       |    def toValidationNel[A: Format]: ValidationNel[String, A] =
-       |      that.body.asJson.map(_.validate[A]).toValidationNel
-       |  }
-       |}
-     """.stripMargin
-
-  def validator(componentPackage: String): String =
-    s"""
-       |package $componentPackage.util
-       |
-       |import scalaz._
-       |import Scalaz._
-       |
-       |object Validator {
-       |  def intValidator(fieldName: String, value: Int): ValidationNel[String, Int] =
-       |    Option(value).filter(_ >= 0).toSuccessNel(s"Field '$$fieldName' with value '$$value' must be gte zero")
-       |
-       |  def idValidator(fieldName: String, value: Long): ValidationNel[String, Long] =
-       |    Option(value).filter(_ >= 0).toSuccessNel(s"Field '$$fieldName' with value '$$value' must be gte zero")
-       |
-       |  def stringValidator(fieldName: String, value: String): ValidationNel[String, String] =
-       |    Option(value).map(_.trim).filterNot(_.isEmpty).toSuccessNel(s"Field '$$fieldName' with value '$$value' must not be empty")
-       |}
-     """.stripMargin
 
   def evolution(entity: EntityUserInput): String =
     s"""

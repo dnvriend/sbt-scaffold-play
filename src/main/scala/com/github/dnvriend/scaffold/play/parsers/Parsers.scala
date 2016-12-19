@@ -39,8 +39,9 @@ object Parsers {
   case object StringOptionType extends FieldType { val name: String = "Option[String]"; val sql: String = "VARCHAR(255)" }
   case object LongOptionType extends FieldType { val name: String = "Option[Long]"; val sql: String = "BIGINT" }
 
-  case object Yes extends Choice
-  case object No extends Choice
+  trait YesNoChoice extends Choice
+  case object Yes extends YesNoChoice
+  case object No extends YesNoChoice
 
   case object End extends Choice
 
@@ -71,6 +72,12 @@ object Parsers {
   case object SlickEnablerChoice extends EnablerChoice
   case object SparkEnablerChoice extends EnablerChoice
   case object AllEnablerChoice extends EnablerChoice
+
+  val yesNoParser: Parser[YesNoChoice] = {
+    val yes: Parser[YesNoChoice] = ("y" | "yes") ^^^ Yes
+    val no: Parser[YesNoChoice] = ("n" | "no") ^^^ No
+    token(yes | no, "yes or no").examples("no")
+  }
 
   val enablerParser: Parser[EnablerChoice] = {
     val anorm: Parser[EnablerChoice] = "anorm" ^^^ AnormEnablerChoice

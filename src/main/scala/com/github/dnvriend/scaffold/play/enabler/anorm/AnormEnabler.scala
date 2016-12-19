@@ -17,21 +17,33 @@
 package com.github.dnvriend.scaffold.play.enabler.anorm
 
 import ammonite.ops._
+import com.github.dnvriend.scaffold.play.enabler.slick.SlickEnablerResult
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
-import com.github.dnvriend.scaffold.play.util.FileUtils
+import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
+import play.api.libs.json.{ Format, Json }
 
-import scalaz.Disjunction
+import scalaz._
+import Scalaz._
 
+object AnormEnablerResult extends PathFormat {
+  implicit val format: Format[AnormEnablerResult] = Json.format[AnormEnablerResult]
+}
 final case class AnormEnablerResult(setting: Path, config: Path, createdModule: Path) extends EnablerResult
 
 object AnormEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
+    _ <- check(ctx.enabled)
     settings <- createSettings(ctx.baseDir, Template.settings(ctx))
     config <- createConfig(ctx.resourceDir, Template.config)
     createdModule <- createModule(ctx.srcDir, "play.modules.anorm", "AnormModule")
     _ <- FileUtils.createDirectory(ctx.resourceDir / "evolutions" / "default")
     _ <- addConfig(ctx.resourceDir)
   } yield AnormEnablerResult(settings, config, createdModule)
+
+  def check(enabled: List[EnablerResult]): Disjunction[String, List[Unit]] = enabled.collect {
+    case x: SlickEnablerResult => "slick has already been enabled".left[Unit]
+    case _                     => ().right[String]
+  }.sequenceU
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
     FileUtils.writeFile(baseDir / "build-anorm.sbt", content)

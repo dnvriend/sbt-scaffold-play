@@ -18,9 +18,14 @@ package com.github.dnvriend.scaffold.play.enabler.json
 
 import ammonite.ops.Path
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
-import com.github.dnvriend.scaffold.play.util.FileUtils
+import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
+import play.api.libs.json.{ Format, Json }
 
 import scalaz.Disjunction
+
+object JsonEnablerResult extends PathFormat {
+  implicit val format: Format[JsonEnablerResult] = Json.format[JsonEnablerResult]
+}
 
 final case class JsonEnablerResult(settings: Path) extends EnablerResult
 

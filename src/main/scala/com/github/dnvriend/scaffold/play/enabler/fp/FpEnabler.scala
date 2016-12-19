@@ -18,10 +18,14 @@ package com.github.dnvriend.scaffold.play.enabler.fp
 
 import ammonite.ops.Path
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
-import com.github.dnvriend.scaffold.play.util.{ FileUtils, UserInput }
-import sbt.complete.DefaultParsers
+import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
+import play.api.libs.json.{ Format, Json }
 
 import scalaz.Disjunction
+
+object FpEnablerResult extends PathFormat {
+  implicit val format: Format[FpEnablerResult] = Json.format[FpEnablerResult]
+}
 
 final case class FpEnablerResult(settings: Path) extends EnablerResult
 

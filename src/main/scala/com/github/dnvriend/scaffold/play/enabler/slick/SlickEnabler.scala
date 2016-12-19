@@ -17,21 +17,34 @@
 package com.github.dnvriend.scaffold.play.enabler.slick
 
 import ammonite.ops._
+import com.github.dnvriend.scaffold.play.enabler.anorm.AnormEnablerResult
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
-import com.github.dnvriend.scaffold.play.util.FileUtils
+import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
+import play.api.libs.json.{ Format, Json }
 
-import scalaz.Disjunction
+import scalaz._
+import Scalaz._
+
+object SlickEnablerResult extends PathFormat {
+  implicit val format: Format[SlickEnablerResult] = Json.format[SlickEnablerResult]
+}
 
 final case class SlickEnablerResult(setting: Path, config: Path, createdModule: Path) extends EnablerResult
 
 object SlickEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
+    _ <- check(ctx.enabled)
     settings <- createSettings(ctx.baseDir, Template.settings(ctx))
     config <- createConfig(ctx.resourceDir, Template.config)
     createdModule <- createModule(ctx.srcDir, "play.modules.slick", "SlickModule")
     _ <- FileUtils.createDirectory(ctx.resourceDir / "evolutions" / "default")
     _ <- addConfig(ctx.resourceDir)
   } yield SlickEnablerResult(settings, config, createdModule)
+
+  def check(enabled: List[EnablerResult]): Disjunction[String, List[Unit]] = enabled.collect {
+    case x: AnormEnablerResult => "Anorm has already been enabled".left[Unit]
+    case _                     => ().right[String]
+  }.sequenceU
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
     FileUtils.writeFile(baseDir / "build-slick.sbt", content)
@@ -50,8 +63,6 @@ object Template {
   def settings(ctx: EnablerContext): String =
     s"""
       |// database support
-      |libraryDependencies += jdbc
-      |libraryDependencies += evolutions
       |libraryDependencies += "com.zaxxer" % "HikariCP" % "${ctx.hikariCpVersion}"
       |libraryDependencies += "com.typesafe.play" %% "play-slick" % "${ctx.playSlickVersion}"
       |libraryDependencies += "com.typesafe.play" %% "play-slick-evolutions" % "${ctx.playSlickVersion}"
@@ -103,6 +114,10 @@ object Template {
     |#slick.dbs.default.db.password=postgres
     |
     |slick.dbs.default.db.maximumPoolSize=10
+    |
+    |# play evolutions
+    |play.evolutions.enabled=true
+    |play.evolutions.autoApply=true
     |
     |slick {
     |  context {

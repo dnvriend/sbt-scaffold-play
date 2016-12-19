@@ -16,7 +16,7 @@
 
 package com.github.dnvriend.scaffold.play
 
-import com.github.dnvriend.scaffold.play.enabler.EnablerContext
+import com.github.dnvriend.scaffold.play.enabler.{ EnablerContext, EnablerResult }
 import com.github.dnvriend.scaffold.play.enabler.akka.AkkaEnabler
 import com.github.dnvriend.scaffold.play.enabler.all.EveryFeatureEnabler
 import com.github.dnvriend.scaffold.play.enabler.anorm.AnormEnabler
@@ -35,6 +35,7 @@ import com.github.dnvriend.scaffold.play.enabler.spark.SparkEnabler
 import com.github.dnvriend.scaffold.play.enabler.swagger.SwaggerEnabler
 import com.github.dnvriend.scaffold.play.parsers.Parsers
 import com.github.dnvriend.scaffold.play.parsers.Parsers._
+import com.github.dnvriend.scaffold.play.repository.ScaffoldRepository
 import com.github.dnvriend.scaffold.play.scaffolds._
 import com.github.dnvriend.scaffold.play.scaffolds.buildinfo.BuildInfoControllerScaffold
 import com.github.dnvriend.scaffold.play.scaffolds.controller.ControllerScaffold
@@ -46,6 +47,7 @@ import com.github.dnvriend.scaffold.play.scaffolds.wsclient.WsClientScaffold
 import sbt.Keys._
 import sbt._
 
+import scala.collection.immutable.Seq
 import scalaz._
 
 object SbtScaffoldPlay extends AutoPlugin {
@@ -58,10 +60,13 @@ object SbtScaffoldPlay extends AutoPlugin {
     val scaffoldDirectory: SettingKey[File] = settingKey[File]("The scaffold directory containing the play application settings and h2 database")
     val scaffoldSourceDirectory: SettingKey[File] = settingKey[File]("The compile source directory that scaffold will use to generate files")
     val scaffoldTestDirectory: SettingKey[File] = settingKey[File]("The test source directory that scaffold will use to generate files")
+
     val scaffoldResourceDirectory: SettingKey[File] = settingKey[File]("The compile resource directory that scaffold will use to generate/append configuration")
-    val scaffoldDb: SettingKey[File] = settingKey[File]("The scaffold database location")
+    val scaffoldStateFileLocation: SettingKey[ammonite.ops.Path] = settingKey[ammonite.ops.Path]("The scaffold state file location")
+    val scaffoldClearStateFile: TaskKey[Unit] = taskKey[Unit]("Clears scaffold state file")
     val enable: InputKey[Unit] = inputKey[Unit]("enables features in play")
     val scaffold: InputKey[Unit] = inputKey[Unit]("scaffold features in play")
+
     val scaffoldContext: TaskKey[ScaffoldContext] = taskKey[ScaffoldContext]("Creates the scaffold context")
     val enablerContext: TaskKey[EnablerContext] = taskKey[EnablerContext]("Creates the enabler context")
 
@@ -118,7 +123,19 @@ object SbtScaffoldPlay extends AutoPlugin {
       dir
     },
 
-    scaffoldDb := scaffoldDirectory.value / "scaffold.h2",
+    scaffoldStateFileLocation := ammonite.ops.Path(scaffoldDirectory.value / "scaffold-state.json"),
+
+    scaffoldClearStateFile := {
+      val log: Logger = streams.value.log
+      val scaffoldStateFile = scaffoldStateFileLocation.value
+      val result = ScaffoldRepository.clear(scaffoldStateFile)
+      result match {
+        case DRight(_) =>
+          log.info("scaffold state cleared.")
+        case DLeft(message) =>
+          log.info(message)
+      }
+    },
 
     scaffoldSourceDirectory := (sourceDirectories in Compile).value.find(file => file.absolutePath.endsWith("scala") || file.absolutePath.endsWith("app")).getOrElse((sourceDirectory in Compile).value),
 
@@ -135,6 +152,8 @@ object SbtScaffoldPlay extends AutoPlugin {
       val testDir: File = scaffoldTestDirectory.value
       val organizationName: String = organization.value
       val projectName: String = name.value
+      val scaffoldStateFile = scaffoldStateFileLocation.value
+      val enabled: List[EnablerResult] = ScaffoldRepository.getEnabled(scaffoldStateFile)
       new EnablerContext(
         ammonite.ops.Path(baseDir),
         ammonite.ops.Path(srcDir),
@@ -142,6 +161,7 @@ object SbtScaffoldPlay extends AutoPlugin {
         ammonite.ops.Path(testDir),
         organizationName,
         projectName,
+        enabled,
         scaffoldVersionAkka.value,
         scaffoldVersionHikariCp.value,
         scaffoldVersionH2.value,
@@ -167,9 +187,10 @@ object SbtScaffoldPlay extends AutoPlugin {
 
     enable := {
       val ctx = enablerContext.value
-      implicit val log: Logger = streams.value.log
+      val log: Logger = streams.value.log
       val choice = Parsers.enablerParser.parsed
-      val enablerResult = choice match {
+      val scaffoldStateFile = scaffoldStateFileLocation.value
+      val enablerResult: Disjunction[String, EnablerResult] = choice match {
         case AllEnablerChoice =>
           EveryFeatureEnabler.execute(ctx)
         case AnormEnablerChoice =>
@@ -204,8 +225,13 @@ object SbtScaffoldPlay extends AutoPlugin {
           SparkEnabler.execute(ctx)
       }
 
-      enablerResult match {
-        case DRight(_) =>
+      val saveStateResult = for {
+        result <- enablerResult
+        stateFile <- ScaffoldRepository.saveEnabled(scaffoldStateFile, result)
+      } yield result
+
+      saveStateResult match {
+        case DRight(enabled) =>
           log.info("Enable complete")
         case DLeft(message) =>
           log.warn(s"Oops, could not enable due to: $message")

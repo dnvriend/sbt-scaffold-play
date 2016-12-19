@@ -18,9 +18,14 @@ package com.github.dnvriend.scaffold.play.enabler.kafka
 
 import ammonite.ops.Path
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
-import com.github.dnvriend.scaffold.play.util.FileUtils
+import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
+import play.api.libs.json.{ Format, Json }
 
 import scalaz.Disjunction
+
+object KafkaEnablerResult extends PathFormat {
+  implicit val format: Format[KafkaEnablerResult] = Json.format[KafkaEnablerResult]
+}
 
 final case class KafkaEnablerResult(settings: Path, producerConfig: Path, consumerConfig: Path) extends EnablerResult
 

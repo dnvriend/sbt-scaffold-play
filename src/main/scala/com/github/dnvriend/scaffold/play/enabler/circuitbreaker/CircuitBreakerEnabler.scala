@@ -18,9 +18,14 @@ package com.github.dnvriend.scaffold.play.enabler.circuitbreaker
 
 import ammonite.ops._
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
-import com.github.dnvriend.scaffold.play.util.FileUtils
+import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
+import play.api.libs.json.{ Format, Json }
 
 import scalaz.Disjunction
+
+object CircuitBreakerEnablerResult extends PathFormat {
+  implicit val format: Format[CircuitBreakerEnablerResult] = Json.format[CircuitBreakerEnablerResult]
+}
 
 final case class CircuitBreakerEnablerResult(config: Path) extends EnablerResult
 

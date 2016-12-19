@@ -18,9 +18,14 @@ package com.github.dnvriend.scaffold.play.enabler.logging
 
 import ammonite.ops.Path
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
-import com.github.dnvriend.scaffold.play.util.FileUtils
+import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
+import play.api.libs.json.{ Format, Json }
 
 import scalaz.Disjunction
+
+object LoggingEnablerResult extends PathFormat {
+  implicit val format: Format[LoggingEnablerResult] = Json.format[LoggingEnablerResult]
+}
 
 final case class LoggingEnablerResult(logback: Path) extends EnablerResult
 

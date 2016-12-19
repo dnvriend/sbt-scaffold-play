@@ -16,13 +16,54 @@
 
 package com.github.dnvriend.scaffold.play.repository
 
-import sbt.Logger
+import ammonite.ops._
+import com.github.dnvriend.scaffold.play.enabler.EnablerResult
+import com.github.dnvriend.scaffold.play.parsers.Parsers
+import com.github.dnvriend.scaffold.play.parsers.Parsers._
+import com.github.dnvriend.scaffold.play.util.UserInput
+import play.api.libs.json.Json
 
+import scalaz._
+import Scalaz._
+
+// see: http://stackoverflow.com/questions/17021847/noise-free-json-format-for-sealed-traits-with-play-2-2-library
+// see: https://github.com/julienrf/play-json-derived-codecs/releases
 object ScaffoldRepository {
+  final val EmptyFile = Array.empty[Byte]
 
-  final case class ProductType(name: String)
-}
+  def createScaffoldStateFile(scaffoldStateFile: Path): Disjunction[String, Path] =
+    Disjunction.fromTryCatchNonFatal {
+      write.over(scaffoldStateFile, EmptyFile)
+      scaffoldStateFile
+    }.leftMap(_.toString)
 
-class ScaffoldRepository(implicit log: Logger) {
+  def clear(scaffoldStateFile: Path): Disjunction[String, Unit] = for {
+    userInput <- UserInput.readLine(Parsers.yesNoParser, "[clear-scaffold-state]: Are you sure? > ")
+    _ <- clearScaffoldState(scaffoldStateFile, userInput)
+  } yield ()
 
+  private def clearScaffoldState(scaffoldStateFile: Path, userInput: YesNoChoice): Disjunction[String, Path] = userInput match {
+    case Yes => createScaffoldStateFile(scaffoldStateFile)
+    case _   => "User canceled clear scaffold state".left[Path]
+  }
+
+  def checkExistsElseCreateFile(scaffoldStateFile: Path): Disjunction[String, Unit] = {
+    val result: Boolean = exists ! scaffoldStateFile
+    if (!result) createScaffoldStateFile(scaffoldStateFile).map(_ => ())
+    else ().right[String]
+  }
+
+  def saveEnabled(scaffoldStateFile: Path, enablerResult: EnablerResult): Disjunction[String, Path] = for {
+    _ <- checkExistsElseCreateFile(scaffoldStateFile)
+    path <- Disjunction.fromTryCatchNonFatal {
+      write.append(scaffoldStateFile, Json.toJson(enablerResult).toString)
+      scaffoldStateFile
+    }.leftMap(_.toString)
+  } yield path
+
+  def getEnabled(scaffoldStateFile: Path): List[EnablerResult] = {
+    checkExistsElseCreateFile(scaffoldStateFile)
+    val xs: Vector[String] = read.lines ! scaffoldStateFile
+    xs.map(Json.parse).map(_.as[EnablerResult]).toList
+  }
 }

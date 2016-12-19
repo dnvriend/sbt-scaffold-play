@@ -18,10 +18,15 @@ package com.github.dnvriend.scaffold.play.enabler.sbtheader
 
 import ammonite.ops.Path
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
-import com.github.dnvriend.scaffold.play.util.{ FileUtils, UserInput }
+import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat, UserInput }
+import play.api.libs.json.{ Format, Json }
 import sbt.complete.DefaultParsers
 
 import scalaz.Disjunction
+
+object SbtHeaderEnablerResult extends PathFormat {
+  implicit val format: Format[SbtHeaderEnablerResult] = Json.format[SbtHeaderEnablerResult]
+}
 
 final case class SbtHeaderEnablerResult(settings: Path, plugin: Path) extends EnablerResult
 

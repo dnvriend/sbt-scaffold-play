@@ -16,11 +16,16 @@
 
 package com.github.dnvriend.scaffold.play.enabler.docker
 
-import ammonite.ops._
+import ammonite.ops.Path
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
-import com.github.dnvriend.scaffold.play.util.FileUtils
+import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
+import play.api.libs.json.{ Format, Json }
 
 import scalaz.Disjunction
+
+object DockerEnablerResult extends PathFormat {
+  implicit val format: Format[DockerEnablerResult] = Json.format[DockerEnablerResult]
+}
 
 final case class DockerEnablerResult(dockerCompose: Path) extends EnablerResult
 

@@ -25,6 +25,7 @@ class EnablerContext(
   val testDir: Path,
   val organization: String,
   val projectName: String,
+  val enabled: List[EnablerResult],
   val akkaVersion: String = "2.4.12",
   val hikariCpVersion: String = "2.5.1",
   val h2Version: String = "1.4.193",

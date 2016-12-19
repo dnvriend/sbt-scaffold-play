@@ -11,7 +11,7 @@ sbtPlugin := true
 libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.7"
 libraryDependencies += "com.h2database" % "h2" % "1.4.193"
 libraryDependencies += "com.lihaoyi" %% "ammonite-ops" % "0.8.1"
-libraryDependencies += "com.lihaoyi" %% "upickle" % "0.4.3"
+libraryDependencies += "com.typesafe.play" %% "play-json" % "2.4.8"
 libraryDependencies += "com.github.mpilquist" %% "simulacrum" % "0.10.0"
 
 // testing

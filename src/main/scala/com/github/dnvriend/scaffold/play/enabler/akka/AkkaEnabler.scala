@@ -18,9 +18,14 @@ package com.github.dnvriend.scaffold.play.enabler.akka
 
 import ammonite.ops._
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
-import com.github.dnvriend.scaffold.play.util.FileUtils
+import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
+import play.api.libs.json.{ Format, Json }
 
 import scalaz.Disjunction
+
+object AkkaEnablerResult extends PathFormat {
+  implicit val format: Format[AkkaEnablerResult] = Json.format[AkkaEnablerResult]
+}
 
 final case class AkkaEnablerResult(setting: Path, config: Path) extends EnablerResult
 

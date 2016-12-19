@@ -16,11 +16,16 @@
 
 package com.github.dnvriend.scaffold.play.enabler.swagger
 
-import ammonite.ops._
+import ammonite.ops.Path
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
-import com.github.dnvriend.scaffold.play.util.FileUtils
+import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
+import play.api.libs.json.{ Format, Json }
 
 import scalaz.Disjunction
+
+object SwaggerEnablerResult extends PathFormat {
+  implicit val format: Format[SwaggerEnablerResult] = Json.format[SwaggerEnablerResult]
+}
 
 final case class SwaggerEnablerResult(settings: Path, plugin: Path) extends EnablerResult
 
