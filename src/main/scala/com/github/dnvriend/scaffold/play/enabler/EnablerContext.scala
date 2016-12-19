@@ -42,5 +42,7 @@ class EnablerContext(
   val shapelessVersion: String = "2.3.2",
   val nscalaTimeVersion: String = "2.14.0",
   val playJsonVersion: String = "2.5.10",
-  val lagomVersion: String = "1.3.0-M1"
+  val lagomVersion: String = "1.3.0-M1",
+  val slickVersion: String = "3.1.1",
+  val playSlickVersion: String = "2.0.2"
 )

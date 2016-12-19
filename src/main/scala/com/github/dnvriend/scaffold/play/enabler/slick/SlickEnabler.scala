@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play.enabler.anorm
+package com.github.dnvriend.scaffold.play.enabler.slick
 
 import ammonite.ops._
 import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, EnablerResult }
@@ -22,25 +22,25 @@ import com.github.dnvriend.scaffold.play.util.FileUtils
 
 import scalaz.Disjunction
 
-final case class AnormEnablerResult(setting: Path, config: Path, createdModule: Path) extends EnablerResult
+final case class SlickEnablerResult(setting: Path, config: Path, createdModule: Path) extends EnablerResult
 
-object AnormEnabler extends Enabler {
+object SlickEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
     settings <- createSettings(ctx.baseDir, Template.settings(ctx))
     config <- createConfig(ctx.resourceDir, Template.config)
-    createdModule <- createModule(ctx.srcDir, "play.modules.anorm", "AnormModule")
+    createdModule <- createModule(ctx.srcDir, "play.modules.slick", "SlickModule")
     _ <- FileUtils.createDirectory(ctx.resourceDir / "evolutions" / "default")
     _ <- addConfig(ctx.resourceDir)
-  } yield AnormEnablerResult(settings, config, createdModule)
+  } yield SlickEnablerResult(settings, config, createdModule)
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
-    FileUtils.writeFile(baseDir / "build-anorm.sbt", content)
+    FileUtils.writeFile(baseDir / "build-slick.sbt", content)
 
   def createConfig(resourceDir: Path, content: String): Disjunction[String, Path] =
-    FileUtils.writeFile(resourceDir / "anorm.conf", content)
+    FileUtils.writeFile(resourceDir / "slick.conf", content)
 
   def addConfig(resourceDir: Path): Disjunction[String, Path] =
-    FileUtils.appendToApplication(resourceDir, """include "anorm"""")
+    FileUtils.appendToApplication(resourceDir, """include "slick"""")
 
   def createModule(srcDir: Path, packageName: String, className: String): Disjunction[String, Path] =
     FileUtils.createClass(srcDir, packageName, className, Template.module)
@@ -53,7 +53,10 @@ object Template {
       |libraryDependencies += jdbc
       |libraryDependencies += evolutions
       |libraryDependencies += "com.zaxxer" % "HikariCP" % "${ctx.hikariCpVersion}"
-      |libraryDependencies += "com.typesafe.play" %% "anorm" % "${ctx.anormVersion}"
+      |libraryDependencies += "com.typesafe.play" %% "play-slick" % "${ctx.playSlickVersion}"
+      |libraryDependencies += "com.typesafe.play" %% "play-slick-evolutions" % "${ctx.playSlickVersion}"
+      |libraryDependencies += "com.typesafe.slick" %% "slick" % "${ctx.slickVersion}"
+      |libraryDependencies += "com.typesafe.slick" %% "slick-hikaricp" % "${ctx.slickVersion}"
       |// database driver
       |libraryDependencies += "com.h2database" % "h2" % "${ctx.h2Version}"
       |libraryDependencies += "org.postgresql" % "postgresql" % "${ctx.postgresVersion}"
@@ -61,7 +64,7 @@ object Template {
 
   val module: String =
     """
-    |package play.modules.anorm
+    |package play.modules.slick
     |
     |import javax.inject.Singleton
     |
@@ -70,16 +73,16 @@ object Template {
     |
     |import scala.concurrent.ExecutionContext
     |
-    |class AnormModule extends AbstractModule {
+    |class SlickModule extends AbstractModule {
     |  override def configure(): Unit = {
     |    @Provides @Singleton
-    |    def anormExecutionContextProvider(system: ActorSystem): AnormExecutionContext =
-    |      new AnormExecutionContext(system)
+    |    def slickExecutionContextProvider(system: ActorSystem): SlickExecutionContext =
+    |      new SlickExecutionContext(system)
     |  }
     |}
     |
-    |class AnormExecutionContext (system: ActorSystem) extends ExecutionContext {
-    |  val ec: ExecutionContext = system.dispatchers.lookup("anorm.context")
+    |class SlickExecutionContext (system: ActorSystem) extends ExecutionContext {
+    |  val ec: ExecutionContext = system.dispatchers.lookup("slick.context")
     |  override def execute(runnable: Runnable): Unit = ec.execute(runnable)
     |  override def reportFailure(cause: Throwable): Unit = ec.reportFailure(cause)
     |}
@@ -87,34 +90,21 @@ object Template {
 
   val config: String =
     """
-    |# H2 configuration
-    |db.default.driver=org.h2.Driver
-    |db.default.url="jdbc:h2:mem:play"
+    |# H2 Configuration
+    |slick.dbs.default.driver="slick.driver.H2Driver$"
+    |slick.dbs.default.db.driver="org.h2.Driver"
+    |slick.dbs.default.db.url="jdbc:h2:mem:play"
     |
     |# Postgres configuration
-    |#db.default.driver=org.postgresql.Driver
-    |#db.default.url="jdbc:postgresql://localhost:5432/postgres?reWriteBatchedInserts=true"
-    |#db.default.username="postgres"
-    |#db.default.password="postgres"
+    |#slick.dbs.default.driver="slick.driver.PostgresDriver$"
+    |#slick.dbs.default.db.driver="org.postgresql.Driver"
+    |#slick.dbs.default.db.url="jdbc:postgresql://localhost:5432/postgres?reWriteBatchedInserts=true"
+    |#slick.dbs.default.db.user=postgres
+    |#slick.dbs.default.db.password=postgres
     |
-    |# play evolutions
-    |play.evolutions.enabled=true
-    |play.evolutions.autoApply=true
+    |slick.dbs.default.db.maximumPoolSize=10
     |
-    |# Connection pool configuration
-    |play.db.autocommit = true
-    |play.db.connectionTimeout = 30 seconds
-    |play.db.idleTimeout = 10 minutes
-    |play.db.maxLifetime = 30 minutes
-    |play.db.maximumPoolSize = 10
-    |play.db.initializationFailFast = false
-    |play.db.isolateInternalQueries = false
-    |play.db.allowPoolSuspension = false
-    |play.db.readOnly = false
-    |play.db.registerMbeans = false
-    |play.db.validationTimeout = 5 seconds
-    |
-    |anorm {
+    |slick {
     |  context {
     |   fork-join-executor {
     |      parallelism-max=10
@@ -122,6 +112,6 @@ object Template {
     |  }
     |}
     |
-    |play.modules.enabled += "play.modules.anorm.AnormModule"
+    |play.modules.enabled += "play.modules.slick.SlickModule"
   """.stripMargin
 }

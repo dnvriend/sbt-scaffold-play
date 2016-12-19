@@ -30,6 +30,7 @@ import com.github.dnvriend.scaffold.play.enabler.kafka.KafkaEnabler
 import com.github.dnvriend.scaffold.play.enabler.logging.LoggingEnabler
 import com.github.dnvriend.scaffold.play.enabler.sbtheader.SbtHeaderEnabler
 import com.github.dnvriend.scaffold.play.enabler.scalariform.ScalariformEnabler
+import com.github.dnvriend.scaffold.play.enabler.slick.SlickEnabler
 import com.github.dnvriend.scaffold.play.enabler.spark.SparkEnabler
 import com.github.dnvriend.scaffold.play.enabler.swagger.SwaggerEnabler
 import com.github.dnvriend.scaffold.play.parsers.Parsers
@@ -82,6 +83,9 @@ object SbtScaffoldPlay extends AutoPlugin {
     val scaffoldVersionNscalaTime: SettingKey[String] = settingKey[String]("Enabler nscalatime version")
     val scaffoldVersionPlayJson: SettingKey[String] = settingKey[String]("Enabler play-json version")
     val scaffoldVersionLagom: SettingKey[String] = settingKey[String]("Enabler Lagom version")
+    val scaffoldVersionSlick: SettingKey[String] = settingKey[String]("Enabler Slick version")
+    val scaffoldVersionPlaySlick: SettingKey[String] = settingKey[String]("Enabler PlaySlick version")
+
   }
 
   import autoImport._
@@ -105,6 +109,8 @@ object SbtScaffoldPlay extends AutoPlugin {
     scaffoldVersionNscalaTime := "2.14.0",
     scaffoldVersionPlayJson := "2.5.10",
     scaffoldVersionLagom := "1.3.0-M1",
+    scaffoldVersionSlick := "3.1.1",
+    scaffoldVersionPlaySlick := "2.0.2",
 
     scaffoldDirectory := {
       val dir = baseDirectory.value / ".scaffold"
@@ -153,7 +159,9 @@ object SbtScaffoldPlay extends AutoPlugin {
         scaffoldVersionShapeless.value,
         scaffoldVersionNscalaTime.value,
         scaffoldVersionPlayJson.value,
-        scaffoldVersionLagom.value
+        scaffoldVersionLagom.value,
+        scaffoldVersionSlick.value,
+        scaffoldVersionPlaySlick.value
       )
     },
 
@@ -188,6 +196,8 @@ object SbtScaffoldPlay extends AutoPlugin {
           ScalariformEnabler.execute(ctx)
         case SbtHeaderEnablerChoice =>
           SbtHeaderEnabler.execute(ctx)
+        case SlickEnablerChoice =>
+          SlickEnabler.execute(ctx)
         case SwaggerEnablerChoice =>
           SwaggerEnabler.execute(ctx)
         case SparkEnablerChoice =>

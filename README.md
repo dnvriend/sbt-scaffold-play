@@ -57,6 +57,7 @@ The following features can be enabled:
 - logback
 - sbtheader
 - scalariform
+- slick
 - spark
 - swagger
 
@@ -172,26 +173,54 @@ play.evolutions.enabled=true
 play.evolutions.autoApply=true
 
 # Connection pool configuration
-play.db.pool=hikaricp
-play.db.prototype.hikaricp.dataSourceClassName = null
-play.db.prototype.hikaricp.autocommit = true
-play.db.prototype.hikaricp.connectionTimeout = 30 seconds
-play.db.prototype.hikaricp.idleTimeout = 10 minutes
-play.db.prototype.hikaricp.maxLifetime = 30 minutes
-play.db.prototype.hikaricp.connectionTestQuery = null
-play.db.prototype.hikaricp.minimumIdle = null
-play.db.prototype.hikaricp.maximumPoolSize = 10
-play.db.prototype.hikaricp.poolName = null
-play.db.prototype.hikaricp.initializationFailFast = false
-play.db.prototype.hikaricp.isolateInternalQueries = false
-play.db.prototype.hikaricp.allowPoolSuspension = false
-play.db.prototype.hikaricp.readOnly = false
-play.db.prototype.hikaricp.registerMbeans = false
-play.db.prototype.hikaricp.catalog = null
-play.db.prototype.hikaricp.connectionInitSql = null
-play.db.prototype.hikaricp.transactionIsolation = null
-play.db.prototype.hikaricp.validationTimeout = 5 seconds
-play.db.prototype.hikaricp.leakDetectionThreshold = null
+play.db.autocommit = true
+play.db.connectionTimeout = 30 seconds
+play.db.idleTimeout = 10 minutes
+play.db.maxLifetime = 30 minutes
+play.db.maximumPoolSize = 10
+play.db.initializationFailFast = false
+play.db.isolateInternalQueries = false
+play.db.allowPoolSuspension = false
+play.db.readOnly = false
+play.db.registerMbeans = false
+play.db.validationTimeout = 5 seconds
+
+anorm {
+  context {
+   fork-join-executor {
+      parallelism-max=10
+    }
+  }
+}
+
+play.modules.enabled += "play.modules.anorm.AnormModule"
+```
+
+Play module: `play.modules.anorm.AnormModule`:
+
+```scala
+package play.modules.anorm
+
+import javax.inject.Singleton
+
+import akka.actor.ActorSystem
+import com.google.inject.{ AbstractModule, Provides }
+
+import scala.concurrent.ExecutionContext
+
+class AnormModule extends AbstractModule {
+  override def configure(): Unit = {
+    @Provides @Singleton
+    def anormExecutionContextProvider(system: ActorSystem): AnormExecutionContext =
+      new AnormExecutionContext(system)
+  }
+}
+
+class AnormExecutionContext(system: ActorSystem) extends ExecutionContext {
+  val ec: ExecutionContext = system.dispatchers.lookup("anorm.context")
+  override def execute(runnable: Runnable): Unit = ec.execute(runnable)
+  override def reportFailure(cause: Throwable): Unit = ec.reportFailure(cause)
+}
 ```
 
 ### Buildinfo
@@ -233,13 +262,13 @@ buildInfoPackage := organization.value
 [success] Total time: 0 s, completed 18-dec-2016 14:27:22
 ```
 
-This will create the configuration `/conf/circuit-breaker.conf`:
+configuration `conf/circuit-breaker.conf`:
 
-```bash
+```
 play.modules.enabled += "play.modules.cb.CircuitBreakerModule"
 ```
 
-And it will add the `play.modules.cb.CircuitBreakerModule`:
+Play module `play.modules.cb.CircuitBreakerModule`:
 
 ```scala
 package play.modules.cb
@@ -530,6 +559,85 @@ headers := Map(
   "scala" -> Apache2_0("2016", "Your Name Here"),
   "conf" -> Apache2_0("2016", "Your Name Here", "#")
 )
+```
+
+### Slick
+[Slick](http://slick.lightbend.com/) and [play-slick](https://www.playframework.com/documentation/2.5.x/PlaySlick) can be enabled by typing:
+
+```
+[play-seed] $ enable slick
+[info] Enable complete
+```
+
+sbt settings `build-slick.sbt`:
+
+```
+// database support
+libraryDependencies += jdbc
+libraryDependencies += evolutions
+libraryDependencies += "com.zaxxer" % "HikariCP" % "2.5.1"
+libraryDependencies += "com.typesafe.play" %% "play-slick" % "2.0.2"
+libraryDependencies += "com.typesafe.play" %% "play-slick-evolutions" % "2.0.2"
+libraryDependencies += "com.typesafe.slick" %% "slick" % "3.1.1"
+libraryDependencies += "com.typesafe.slick" %% "slick-hikaricp" % "3.1.1"
+// database driver
+libraryDependencies += "com.h2database" % "h2" % "1.4.193"
+libraryDependencies += "org.postgresql" % "postgresql" % "9.4.1212"
+```
+
+configuration `conf/slick.conf`:
+
+```
+# H2 Configuration
+slick.dbs.default.driver="slick.driver.H2Driver$"
+slick.dbs.default.db.driver="org.h2.Driver"
+slick.dbs.default.db.url="jdbc:h2:mem:play"
+
+# Postgres configuration
+#slick.dbs.default.driver="slick.driver.PostgresDriver$"
+#slick.dbs.default.db.driver="org.postgresql.Driver"
+#slick.dbs.default.db.url="jdbc:postgresql://localhost:5432/postgres?reWriteBatchedInserts=true"
+#slick.dbs.default.db.user=postgres
+#slick.dbs.default.db.password=postgres
+
+slick.dbs.default.db.maximumPoolSize=10
+
+slick {
+  context {
+   fork-join-executor {
+      parallelism-max=10
+    }
+  }
+}
+
+play.modules.enabled += "play.modules.slick.SlickModule"
+```
+
+Play module: `play.modules.slick.SlickModule`:
+
+```scala
+package play.modules.slick
+
+import javax.inject.Singleton
+
+import akka.actor.ActorSystem
+import com.google.inject.{AbstractModule, Provides}
+
+import scala.concurrent.ExecutionContext
+
+class SlickModule extends AbstractModule {
+  override def configure(): Unit = {
+    @Provides @Singleton
+    def slickExecutionContextProvider(system: ActorSystem): SlickExecutionContext =
+      new SlickExecutionContext(system)
+  }
+}
+
+class SlickExecutionContext (system: ActorSystem) extends ExecutionContext {
+  val ec: ExecutionContext = system.dispatchers.lookup("slick.context")
+  override def execute(runnable: Runnable): Unit = ec.execute(runnable)
+  override def reportFailure(cause: Throwable): Unit = ec.reportFailure(cause)
+}
 ```
 
 ### Scalariform
