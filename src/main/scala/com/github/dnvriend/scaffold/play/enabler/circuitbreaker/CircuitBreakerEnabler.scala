@@ -21,7 +21,8 @@ import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, Enab
 import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
 import play.api.libs.json.{ Format, Json }
 
-import scalaz.Disjunction
+import scalaz._
+import Scalaz._
 
 object CircuitBreakerEnablerResult extends PathFormat {
   implicit val format: Format[CircuitBreakerEnablerResult] = Json.format[CircuitBreakerEnablerResult]
@@ -31,10 +32,16 @@ final case class CircuitBreakerEnablerResult(config: Path) extends EnablerResult
 
 object CircuitBreakerEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
+    _ <- check(ctx.enabled)
     config <- createConfig(ctx.resourceDir)
     createdModule <- createModule(ctx.srcDir, "play.modules.cb", "CircuitBreakerModule")
     _ <- addConfig(ctx.resourceDir)
   } yield CircuitBreakerEnablerResult(config)
+
+  def check(enabled: List[EnablerResult]): Disjunction[String, List[Unit]] = enabled.collect {
+    case x: CircuitBreakerEnablerResult => "CircuitBreaker already enabled".left[Unit]
+    case _                              => ().right[String]
+  }.sequenceU
 
   def createConfig(resourceDir: Path): Disjunction[String, Path] =
     FileUtils.writeFile(resourceDir / "circuit-breaker.conf", Template.config)

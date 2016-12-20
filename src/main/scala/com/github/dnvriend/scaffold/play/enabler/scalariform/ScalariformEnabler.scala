@@ -21,7 +21,8 @@ import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, Enab
 import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
 import play.api.libs.json.{ Format, Json }
 
-import scalaz.Disjunction
+import scalaz._
+import Scalaz._
 
 object ScalariformEnablerResult extends PathFormat {
   implicit val format: Format[ScalariformEnablerResult] = Json.format[ScalariformEnablerResult]
@@ -31,9 +32,15 @@ final case class ScalariformEnablerResult(settings: Path, plugin: Path) extends 
 
 object ScalariformEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
+    _ <- check(ctx.enabled)
     settings <- createSettings(ctx.baseDir, Template.settings())
     plugin <- createPlugin(ctx.baseDir, Template.plugin(ctx))
   } yield ScalariformEnablerResult(settings, plugin)
+
+  def check(enabled: List[EnablerResult]): Disjunction[String, List[Unit]] = enabled.collect {
+    case x: ScalariformEnablerResult => "Scalariform plugin already enabled".left[Unit]
+    case _                           => ().right[String]
+  }.sequenceU
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
     FileUtils.writeFile(baseDir / "build-scalariform.sbt", content)

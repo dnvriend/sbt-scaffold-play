@@ -22,7 +22,8 @@ import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat, UserInput
 import play.api.libs.json.{ Format, Json }
 import sbt.complete.DefaultParsers
 
-import scalaz.Disjunction
+import scalaz._
+import Scalaz._
 
 object SbtHeaderEnablerResult extends PathFormat {
   implicit val format: Format[SbtHeaderEnablerResult] = Json.format[SbtHeaderEnablerResult]
@@ -32,10 +33,16 @@ final case class SbtHeaderEnablerResult(settings: Path, plugin: Path) extends En
 
 object SbtHeaderEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
+    _ <- check(ctx.enabled)
     authorName <- UserInput.readLine(DefaultParsers.any.*.map(_.mkString).examples(ctx.organization), "[sbt-header]: Enter your name > ")
     settings <- createSettings(ctx.baseDir, Template.settings(authorName))
     plugin <- createPlugin(ctx.baseDir, Template.plugin(ctx))
   } yield SbtHeaderEnablerResult(settings, plugin)
+
+  def check(enabled: List[EnablerResult]): Disjunction[String, List[Unit]] = enabled.collect {
+    case x: SbtHeaderEnablerResult => "SbtHeader plugin already enabled".left[Unit]
+    case _                         => ().right[String]
+  }.sequenceU
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
     FileUtils.writeFile(baseDir / "build-sbt-header.sbt", content)

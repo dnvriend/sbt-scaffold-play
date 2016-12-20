@@ -21,7 +21,8 @@ import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, Enab
 import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
 import play.api.libs.json.{ Format, Json }
 
-import scalaz.Disjunction
+import scalaz._
+import Scalaz._
 
 object DockerEnablerResult extends PathFormat {
   implicit val format: Format[DockerEnablerResult] = Json.format[DockerEnablerResult]
@@ -31,8 +32,14 @@ final case class DockerEnablerResult(dockerCompose: Path) extends EnablerResult
 
 object DockerEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
+    _ <- check(ctx.enabled)
     dockerCompose <- createDockerCompose(ctx.baseDir)
   } yield DockerEnablerResult(dockerCompose)
+
+  def check(enabled: List[EnablerResult]): Disjunction[String, List[Unit]] = enabled.collect {
+    case x: DockerEnablerResult => "Docker has already been enabled".left[Unit]
+    case _                      => ().right[String]
+  }.sequenceU
 
   def createDockerCompose(baseDir: Path): Disjunction[String, Path] =
     FileUtils.writeFile(baseDir / "docker-compose.yml", Template.dockerCompose)

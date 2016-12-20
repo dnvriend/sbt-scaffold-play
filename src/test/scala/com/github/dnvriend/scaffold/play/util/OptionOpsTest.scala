@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play.scaffolds
+package com.github.dnvriend.scaffold.play.util
 
-import ammonite.ops.Path
-import com.github.dnvriend.scaffold.play.enabler.EnablerResult
+import com.github.dnvriend.scaffold.play.com.github.dnvriend.TestSpec
+import OptionOps._
+import scalaz._
+import Scalaz._
 
-final case class ScaffoldContext(baseDir: Path, srcDir: Path, resourceDir: Path, testDir: Path, organization: String, projectName: String, enabled: List[EnablerResult])
+class OptionOpsTest extends TestSpec {
+  it should "xor" in {
+    "str".some xor "str".some should not be defined
+    "str".some xor none[String] shouldBe "str".some
+    none[String] xor "str".some shouldBe "str".some
+    none[String] xor none[String] should not be defined
+  }
+}

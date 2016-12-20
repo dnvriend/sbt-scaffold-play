@@ -22,8 +22,8 @@ import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, Enab
 import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
 import play.api.libs.json.{ Format, Json }
 
+import scalaz.Scalaz._
 import scalaz._
-import Scalaz._
 
 object AnormEnablerResult extends PathFormat {
   implicit val format: Format[AnormEnablerResult] = Json.format[AnormEnablerResult]
@@ -40,11 +40,16 @@ object AnormEnabler extends Enabler {
     _ <- addConfig(ctx.resourceDir)
   } yield AnormEnablerResult(settings, config, createdModule)
 
-  def check(enabled: List[EnablerResult]): Disjunction[String, List[Unit]] = enabled.collect {
-    case x: SlickEnablerResult => "Slick has already been enabled".left[Unit]
-    case x: AnormEnablerResult => "Anorm has already been enabled".left[Unit]
-    case _                     => ().right[String]
-  }.sequenceU
+  def check(enabled: List[EnablerResult]): Disjunction[String, Unit] = {
+    val slick = enabled.find(_.isInstanceOf[SlickEnablerResult])
+    val anorm = enabled.find(_.isInstanceOf[AnormEnablerResult])
+    (slick, anorm) match {
+      case (Some(_), Some(_)) => "Both Slick and Anorm already installed".left[Unit]
+      case (Some(_), None)    => "Slick already installed".left[Unit]
+      case (None, Some(_))    => "Anorm already installed".left[Unit]
+      case _                  => ().right[String]
+    }
+  }
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
     FileUtils.writeFile(baseDir / "build-anorm.sbt", content)

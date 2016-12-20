@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.github.dnvriend.scaffold.play.scaffolds
+package com.github.dnvriend.scaffold.play.com.github.dnvriend
 
-import ammonite.ops.Path
-import com.github.dnvriend.scaffold.play.enabler.EnablerResult
+import org.scalatest.{ FlatSpec, Matchers }
+import org.typelevel.scalatest.{ DisjunctionMatchers, ValidationMatchers }
 
-final case class ScaffoldContext(baseDir: Path, srcDir: Path, resourceDir: Path, testDir: Path, organization: String, projectName: String, enabled: List[EnablerResult])
+abstract class TestSpec extends FlatSpec with Matchers with ValidationMatchers with DisjunctionMatchers

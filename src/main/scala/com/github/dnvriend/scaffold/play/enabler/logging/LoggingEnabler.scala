@@ -21,7 +21,8 @@ import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, Enab
 import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
 import play.api.libs.json.{ Format, Json }
 
-import scalaz.Disjunction
+import scalaz._
+import Scalaz._
 
 object LoggingEnablerResult extends PathFormat {
   implicit val format: Format[LoggingEnablerResult] = Json.format[LoggingEnablerResult]
@@ -31,8 +32,14 @@ final case class LoggingEnablerResult(logback: Path) extends EnablerResult
 
 object LoggingEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
+    _ <- check(ctx.enabled)
     logback <- createLogback(ctx.resourceDir, Template.logback(ctx.organization))
   } yield LoggingEnablerResult(logback)
+
+  def check(enabled: List[EnablerResult]): Disjunction[String, List[Unit]] = enabled.collect {
+    case x: LoggingEnablerResult => "Logback (Logging) already enabled".left[Unit]
+    case _                       => ().right[String]
+  }.sequenceU
 
   def createLogback(resourceDir: Path, content: String): Disjunction[String, Path] =
     FileUtils.writeFile(resourceDir / "logback.xml", content)

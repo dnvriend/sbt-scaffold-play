@@ -21,7 +21,8 @@ import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, Enab
 import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
 import play.api.libs.json.{ Format, Json }
 
-import scalaz.Disjunction
+import scalaz._
+import Scalaz._
 
 object SwaggerEnablerResult extends PathFormat {
   implicit val format: Format[SwaggerEnablerResult] = Json.format[SwaggerEnablerResult]
@@ -33,11 +34,17 @@ final case class SwaggerEnablerResult(settings: Path, plugin: Path) extends Enab
 // see: https://github.com/swagger-api/swagger-play/tree/master/play-2.5/swagger-play2
 object SwaggerEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
+    _ <- check(ctx.enabled)
     settings <- createSettings(ctx.baseDir, Template.settings(ctx))
     config <- createConfig(ctx.resourceDir, Template.config())
     _ <- addConfig(ctx.resourceDir)
     _ <- addRoute(ctx.resourceDir)
   } yield SwaggerEnablerResult(settings, config)
+
+  def check(enabled: List[EnablerResult]): Disjunction[String, List[Unit]] = enabled.collect {
+    case x: SwaggerEnablerResult => "Swagger already enabled".left[Unit]
+    case _                       => ().right[String]
+  }.sequenceU
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
     FileUtils.writeFile(baseDir / "build-swagger.sbt", content)

@@ -245,7 +245,9 @@ object SbtScaffoldPlay extends AutoPlugin {
       val testDir = scaffoldTestDirectory.value
       val organizationName: String = organization.value
       val projectName: String = name.value
-      ScaffoldContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(resourceDir), ammonite.ops.Path(testDir), organizationName, projectName)
+      val scaffoldStateFile = scaffoldStateFileLocation.value
+      val enabled: List[EnablerResult] = ScaffoldRepository.getEnabled(scaffoldStateFile)
+      ScaffoldContext(ammonite.ops.Path(baseDir), ammonite.ops.Path(srcDir), ammonite.ops.Path(resourceDir), ammonite.ops.Path(testDir), organizationName, projectName, enabled)
     },
 
     scaffold := {

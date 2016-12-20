@@ -21,7 +21,8 @@ import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, Enab
 import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
 import play.api.libs.json.{ Format, Json }
 
-import scalaz.Disjunction
+import scalaz._
+import Scalaz._
 
 object FpEnablerResult extends PathFormat {
   implicit val format: Format[FpEnablerResult] = Json.format[FpEnablerResult]
@@ -31,8 +32,14 @@ final case class FpEnablerResult(settings: Path) extends EnablerResult
 
 object FpEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
+    _ <- check(ctx.enabled)
     settings <- createSettings(ctx.baseDir, Template.settings(ctx))
   } yield FpEnablerResult(settings)
+
+  def check(enabled: List[EnablerResult]): Disjunction[String, List[Unit]] = enabled.collect {
+    case x: FpEnablerResult => "Functional Programming Libraries already enabled".left[Unit]
+    case _                  => ().right[String]
+  }.sequenceU
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
     FileUtils.writeFile(baseDir / "build-fp.sbt", content)

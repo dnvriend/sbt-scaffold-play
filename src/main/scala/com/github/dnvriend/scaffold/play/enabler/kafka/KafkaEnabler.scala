@@ -21,7 +21,8 @@ import com.github.dnvriend.scaffold.play.enabler.{ Enabler, EnablerContext, Enab
 import com.github.dnvriend.scaffold.play.util.{ FileUtils, PathFormat }
 import play.api.libs.json.{ Format, Json }
 
-import scalaz.Disjunction
+import scalaz._
+import Scalaz._
 
 object KafkaEnablerResult extends PathFormat {
   implicit val format: Format[KafkaEnablerResult] = Json.format[KafkaEnablerResult]
@@ -31,12 +32,18 @@ final case class KafkaEnablerResult(settings: Path, producerConfig: Path, consum
 
 object KafkaEnabler extends Enabler {
   override def execute(ctx: EnablerContext): Disjunction[String, EnablerResult] = for {
+    _ <- check(ctx.enabled)
     settings <- createSettings(ctx.baseDir, Template.settings(ctx))
     producerConfig <- createProducerConfig(ctx.resourceDir)
     consumerConfig <- createConsumerConfig(ctx.resourceDir)
     _ <- addProducerConfig(ctx.resourceDir)
     _ <- addConsumerConfig(ctx.resourceDir)
   } yield KafkaEnablerResult(settings, producerConfig, consumerConfig)
+
+  def check(enabled: List[EnablerResult]): Disjunction[String, List[Unit]] = enabled.collect {
+    case x: KafkaEnablerResult => "Kafka already enabled".left[Unit]
+    case _                     => ().right[String]
+  }.sequenceU
 
   def createSettings(baseDir: Path, content: String): Disjunction[String, Path] =
     FileUtils.writeFile(baseDir / "build-kafka.sbt", content)
