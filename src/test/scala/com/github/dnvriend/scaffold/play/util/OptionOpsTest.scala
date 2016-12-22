@@ -16,8 +16,9 @@
 
 package com.github.dnvriend.scaffold.play.util
 
-import com.github.dnvriend.scaffold.play.com.github.dnvriend.TestSpec
 import OptionOps._
+import com.github.dnvriend.TestSpec
+
 import scalaz._
 import Scalaz._
 

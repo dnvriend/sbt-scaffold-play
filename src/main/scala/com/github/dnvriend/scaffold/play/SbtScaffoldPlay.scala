@@ -48,6 +48,7 @@ import sbt.Keys._
 import sbt._
 
 import scala.collection.immutable.Seq
+import scalaz.Scalaz._
 import scalaz._
 
 object SbtScaffoldPlay extends AutoPlugin {
@@ -56,7 +57,7 @@ object SbtScaffoldPlay extends AutoPlugin {
   override def requires: Plugins = plugins.JvmPlugin
 
   object autoImport {
-    val scaffoldBuildInfo: SettingKey[String] = settingKey[String]("The scaffold build info")
+    // settings
     val scaffoldDirectory: SettingKey[File] = settingKey[File]("The scaffold directory containing the play application settings and h2 database")
     val scaffoldSourceDirectory: SettingKey[File] = settingKey[File]("The compile source directory that scaffold will use to generate files")
     val scaffoldTestDirectory: SettingKey[File] = settingKey[File]("The test source directory that scaffold will use to generate files")
@@ -64,11 +65,7 @@ object SbtScaffoldPlay extends AutoPlugin {
     val scaffoldResourceDirectory: SettingKey[File] = settingKey[File]("The compile resource directory that scaffold will use to generate/append configuration")
     val scaffoldStateFileLocation: SettingKey[ammonite.ops.Path] = settingKey[ammonite.ops.Path]("The scaffold state file location")
     val scaffoldClearStateFile: TaskKey[Unit] = taskKey[Unit]("Clears scaffold state file")
-    val enable: InputKey[Unit] = inputKey[Unit]("enables features in play")
-    val scaffold: InputKey[Unit] = inputKey[Unit]("scaffold features in play")
-
-    val scaffoldContext: TaskKey[ScaffoldContext] = taskKey[ScaffoldContext]("Creates the scaffold context")
-    val enablerContext: TaskKey[EnablerContext] = taskKey[EnablerContext]("Creates the enabler context")
+    val scaffoldEnabled: TaskKey[Unit] = taskKey[Unit]("List the features that are enabled")
 
     val scaffoldVersionAkka: SettingKey[String] = settingKey[String]("Enabler Akka version")
     val scaffoldVersionHikariCp: SettingKey[String] = settingKey[String]("Enabler hikariCP version")
@@ -91,6 +88,14 @@ object SbtScaffoldPlay extends AutoPlugin {
     val scaffoldVersionSlick: SettingKey[String] = settingKey[String]("Enabler Slick version")
     val scaffoldVersionPlaySlick: SettingKey[String] = settingKey[String]("Enabler PlaySlick version")
 
+    // context
+    val scaffoldContext: TaskKey[ScaffoldContext] = taskKey[ScaffoldContext]("Creates the scaffold context")
+    val enablerContext: TaskKey[EnablerContext] = taskKey[EnablerContext]("Creates the enabler context")
+
+    // base tasks
+    val scaffoldBuildInfo: SettingKey[String] = settingKey[String]("The scaffold build info")
+    val enable: InputKey[Unit] = inputKey[Unit]("enables features in play")
+    val scaffold: InputKey[Unit] = inputKey[Unit]("scaffold features in play")
   }
 
   import autoImport._
@@ -146,6 +151,7 @@ object SbtScaffoldPlay extends AutoPlugin {
     scaffoldBuildInfo := BuildInfo.toString,
 
     enablerContext := {
+      val log: Logger = streams.value.log
       val baseDir: File = baseDirectory.value
       val srcDir: File = scaffoldSourceDirectory.value
       val resourceDir: File = scaffoldResourceDirectory.value
@@ -155,6 +161,7 @@ object SbtScaffoldPlay extends AutoPlugin {
       val scaffoldStateFile = scaffoldStateFileLocation.value
       val enabled: List[EnablerResult] = ScaffoldRepository.getEnabled(scaffoldStateFile)
       new EnablerContext(
+        log,
         ammonite.ops.Path(baseDir),
         ammonite.ops.Path(srcDir),
         ammonite.ops.Path(resourceDir),
@@ -183,6 +190,19 @@ object SbtScaffoldPlay extends AutoPlugin {
         scaffoldVersionSlick.value,
         scaffoldVersionPlaySlick.value
       )
+    },
+
+    scaffoldEnabled := {
+      def toListOfFeaturesMessage(features: NonEmptyList[EnablerResult]): String =
+        features
+          .map(_.getClass.getSimpleName)
+          .map(name => s"* $name")
+          .map(str => str.substring(0, str.indexOf("EnablerResult")))
+          .toList.mkString("\n")
+      val log: Logger = streams.value.log
+      val maybeEnabledFeatures: Option[NonEmptyList[EnablerResult]] = enablerContext.value.enabled.toNel
+      val message: String = maybeEnabledFeatures.map(toListOfFeaturesMessage) | "No features are enabled"
+      log.info(message)
     },
 
     enable := {
@@ -225,16 +245,14 @@ object SbtScaffoldPlay extends AutoPlugin {
           SparkEnabler.execute(ctx)
       }
 
-      val saveStateResult = for {
-        result <- enablerResult
-        stateFile <- ScaffoldRepository.saveEnabled(scaffoldStateFile, result)
-      } yield result
+      val saveStateResult: Disjunction[String, EnablerResult] =
+        enablerResult >>! (ScaffoldRepository.saveEnabled(scaffoldStateFile, _))
 
       saveStateResult match {
         case DRight(enabled) =>
           log.info("Enable complete")
         case DLeft(message) =>
-          log.warn(s"Oops, could not enable due to: $message")
+          log.warn(message)
       }
     },
 

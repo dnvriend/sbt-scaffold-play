@@ -17,8 +17,10 @@
 package com.github.dnvriend.scaffold.play.enabler
 
 import ammonite.ops._
+import sbt.Logger
 
 class EnablerContext(
+  val log: Logger,
   val baseDir: Path,
   val srcDir: Path,
   val resourceDir: Path,

@@ -20,8 +20,8 @@ import ammonite.ops._
 import com.github.dnvriend.scaffold.play.enabler.EnablerResult
 import com.github.dnvriend.scaffold.play.enabler.anorm.AnormEnablerResult
 import com.github.dnvriend.scaffold.play.enabler.slick.SlickEnablerResult
-import com.github.dnvriend.scaffold.play.scaffolds.{Scaffold, ScaffoldContext, ScaffoldResult}
-import com.github.dnvriend.scaffold.play.userinput.{ComponentNameUserInput, EntityUserInput, ResourceNameUserInput}
+import com.github.dnvriend.scaffold.play.scaffolds.{ Scaffold, ScaffoldContext, ScaffoldResult }
+import com.github.dnvriend.scaffold.play.userinput.{ ComponentNameUserInput, EntityUserInput, ResourceNameUserInput }
 import com.github.dnvriend.scaffold.play.util.FileUtils
 import com.github.dnvriend.scaffold.play.util.Capitalize.ops._
 
@@ -51,10 +51,10 @@ class CrudControllerScaffold extends Scaffold {
     val slick = enabled.find(_.isInstanceOf[SlickEnablerResult])
     val anorm = enabled.find(_.isInstanceOf[AnormEnablerResult])
     (slick, anorm) match {
-      case (Some(_), Some(_)) => "Both Slick and Anorm enabled, please remove one or the other".left[EnablerResult]
+      case (Some(_), Some(_))                 => "Both Slick and Anorm enabled, please remove one or the other".left[EnablerResult]
       case (Some(slick: EnablerResult), None) => slick.right[String]
       case (None, Some(anorm: EnablerResult)) => anorm.right[String]
-      case _ => "No Slick or Anorm enabled".left[EnablerResult]
+      case _                                  => "No Slick or Anorm enabled".left[EnablerResult]
     }
   }
 
@@ -66,6 +66,7 @@ class CrudControllerScaffold extends Scaffold {
       case _: SlickEnablerResult => Template.repository(componentPackage, entity)
       case _: AnormEnablerResult => Template.repository(componentPackage, entity)
     }
+    println("" + slickOrAnorm)
     FileUtils.createClass(srcDir, s"$componentPackage.repository", s"${entity.className}Repository", content)
   }
 
@@ -74,6 +75,7 @@ class CrudControllerScaffold extends Scaffold {
       case _: SlickEnablerResult => Template.controller(componentPackage, entity, resourceName)
       case _: AnormEnablerResult => Template.controller(componentPackage, entity, resourceName)
     }
+    println("" + slickOrAnorm)
     FileUtils.createClass(srcDir, s"$componentPackage.controller", s"${entity.className}Controller", content)
   }
 

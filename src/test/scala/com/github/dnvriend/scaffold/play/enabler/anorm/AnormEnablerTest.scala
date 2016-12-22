@@ -17,7 +17,7 @@
 package com.github.dnvriend.scaffold.play.enabler.anorm
 
 import ammonite.ops.Path
-import com.github.dnvriend.scaffold.play.com.github.dnvriend.TestSpec
+import com.github.dnvriend.TestSpec
 import com.github.dnvriend.scaffold.play.enabler.sbtheader.SbtHeaderEnablerResult
 import com.github.dnvriend.scaffold.play.enabler.slick.SlickEnablerResult
 
